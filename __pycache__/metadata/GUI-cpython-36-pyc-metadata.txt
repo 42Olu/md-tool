@@ -1,0 +1,15 @@
+path to data file: /home/niklas/projects/metadata-project/__pycache__/GUI.cpython-36.pyc
+
+title:  
+type of data:  
+author:  
+contributors:  
+time:  
+date:  
+location:  
+process description:  
+sensors:  
+format:  
+units:  
+keywords:  
+notes:  

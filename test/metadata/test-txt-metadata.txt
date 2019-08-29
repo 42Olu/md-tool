@@ -1,0 +1,15 @@
+path to data file: /home/niklas/projects/metadata-project/test/test.txt
+
+title:  test
+type of data:  
+author:  test
+contributors:  
+time:  Halli Hallo
+date:  
+location:  
+process description:  
+sensors:  
+format:  
+units:  
+keywords:  
+notes:  

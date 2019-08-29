@@ -1,0 +1,15 @@
+path to data file: /home/niklas/projects/metadata-project/test/test2.txt
+
+title:  
+type of data:  
+author:  
+contributors:  
+time:  
+date:  
+location:  
+process description:  
+sensors:  
+format:  
+units:  
+keywords:  
+notes:  
