@@ -220,12 +220,71 @@ class GUI:
             for i,keyword in enumerate(self.keywords):
                 self.MD_files[path][keyword] = self.stringvar_list[i].get()
 
+    def update_keywords(self, keyword_string, window):
+        """
+        Function to update the keywords after the add/remove window
+
+            keyword_string  - string        ... input string from the add/remove text
+            window          - tk.Toplevel   ... the opened window to close it correctly
+        """
+        if messagebox.askokcancel("Save Keywords", "Do you want to update the Keywords?"):
+            # close the window and free self.master
+            window.destroy()
+        
+
     def create_add_remove_window(self):
         """
         Function which opens the add and remove keyword window.
         """
-        add_remove = tk.Toplevel(self.master)
+        def reset_text():
+            """
+            function needed to reset the text widget
+            """
+            # 1. clear the text widget
+            keyword_text.delete('1.0', "end")
+            # 2. insert the keywords
+            for key in self.keywords:
+                if not key == "process description":
+                    keyword_text.insert("end", key + '\n')
 
+        # create a second window and force it to the top
+        add_remove = tk.Toplevel(self.master)
+        #add_remove.attributes("-topmost", True)
+        add_remove.grab_set()
+        add_remove.title("add/remove keywords")
+
+        # create a label with instructions
+        tk.Label(add_remove, text="Instructions", font = "Courier 18").grid(column=0, row=0, padx=10, pady=10, sticky="w")
+        tk.Label(add_remove, text="\t- one keyword per line", font = "Courier 12").grid(column=0, row=1, padx=10, pady=2, sticky="w")
+        tk.Label(add_remove, text="\t- order of lines is the order of keywords", font = "Courier 12").grid(column=0, row=2, padx=10, pady=2, sticky="w")
+        tk.Label(add_remove, text="\t- whitespace at the beginning and end of the line will be trimmed", font = "Courier 12").grid(column=0, row=3, padx=10, pady=2, sticky="w")
+        tk.Label(add_remove, text="\t- do not use \\n in a keyword", font = "Courier 12").grid(column=0, row=4, padx=10, pady=2, sticky="w")
+        tk.Label(add_remove, text="\nAttention:", font = "Courier 16").grid(column=0, row=5, padx=10, pady=10, sticky="w")
+        tk.Label(add_remove, text="\t- changing an existing keyword is the same as removing it and adding a new one", font = "Courier 12").grid(column=0, row=6, padx=10, pady=2, sticky="w")                        
+        tk.Label(add_remove, text="\t  -> metadata could be lost!", font = "Courier 12").grid(column=0, row=7, padx=10, pady=2, sticky="w")
+        tk.Label(add_remove, text="\t- use right click on a keyword in the main window to edit it", font = "Courier 12").grid(column=0, row=8, padx=10, pady=2, sticky="w")
+
+        # create the editor widget
+        keyword_text = tk.Text(add_remove, font = "Courier 12")
+        keyword_text.grid(columnspan=2, row=9, sticky="nsew", padx=10, pady=10)
+        add_remove.rowconfigure(9, weight=1)
+
+        # load the keywords
+        reset_text()
+
+        # add control buttons
+        reset_button = tk.Button(add_remove, text="reset", 
+                                 font = "Courier 12", bg="gray", 
+                                 command=reset_text)
+        reset_button.grid(column = 1, row = 10, sticky="ew", pady=10, padx=10)
+
+        save_button = tk.Button(add_remove, text="save", 
+                                 font = "Courier 12", bg="gray", 
+                                 command=lambda : self.update_keywords(keyword_text.get("1.0","end"), add_remove))
+        save_button.grid(column = 0, row = 10, sticky="ew", pady=10, padx=10)
+
+        # clicking the x should mirror the effect of clicking the save button
+        add_remove.protocol("WM_DELETE_WINDOW", lambda : self.update_keywords(keyword_text.get("1.0","end"), add_remove))
 
     def create_entry_list(self):
         """
@@ -330,6 +389,7 @@ class GUI:
             # these both calls fix the issue with linux and not closing properly
             self.master.quit()
             self.master.destroy()
+            save_keywords(self.keywords)
 
     def start_mainloop(self):
         """
