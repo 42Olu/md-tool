@@ -140,6 +140,17 @@ class GUI:
         # save the metadata of the entry box
         self.MD_files[path][self.keywords[i]] = self.stringvar_list[i].get()
 
+    def on_entry_focus_loss(self, event, i):
+        """
+        function to save the metadata if an entry looses focus
+
+            i   - index     ... index of the entry in the entry list
+        """
+        # get the path to the data file
+        path = os.path.join(self.working_dir, self.file_name.get())
+        # save the metadata of the entry box
+        self.MD_files[path][self.keywords[i]] = self.stringvar_list[i].get()
+
     def on_double_click(self, event):
         """
         Function which handles the double click event on a tree element
@@ -184,11 +195,28 @@ class GUI:
                 self.MD_files[old_path][keyword] = self.stringvar_list[i].get()
             self.stringvar_list[i].set(self.MD_files[path][keyword])
 
+    def save_current_metadata(self):
+        """
+        Function which saves the metadata for the currently opened file
+        """
+        # if a file was opened
+        if not self.topframe is None:
+            # create the path
+            path = os.path.join(self.working_dir, self.file_name.get())
+
+            # save each entry
+            for i,keyword in enumerate(self.keywords):
+                self.MD_files[path][keyword] = self.stringvar_list[i].get()
+
     def on_closing(self):
         """
         Function which saves the open metadata and destroys the master window
         """
+        # save the currently opened file
+        self.save_current_metadata()
+
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            # these both calls fix the issue with linux and not closing properly
             self.master.quit()
             self.master.destroy()
 
@@ -265,6 +293,15 @@ class GUI:
                 return lambda event: self.on_up_button(event, j)
 
             self.entry_list[-1].bind('<Up>', create_up_lambda(i))
+
+            # bind focus out event to save the metadata 
+            # this double saves in case of enter, up or down but is mainly if the mouse clicks on something different
+            # this is mainly a safety measure to minimize data loss
+            def create_focus_loss_lambda(j):
+                return lambda event: self.on_entry_focus_loss(event, j)
+
+            self.entry_list[-1].bind('<FocusOut>', create_focus_loss_lambda(i))
+
 
     def start_mainloop(self):
         """

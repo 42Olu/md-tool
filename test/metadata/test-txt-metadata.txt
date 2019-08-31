@@ -5,9 +5,9 @@ type of data:
 author:  
 contributors:  es funktioniert
 time:  
-date:  
-location:  
-process description:  
+date:  funktioniert speichern beim beenden?
+location:  Ja
+process description:  focus loss
 sensors:  
 format:  txt, csv, ...
 units:  
