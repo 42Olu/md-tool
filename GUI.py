@@ -3,6 +3,7 @@ from md_file import MD_file
 from utils import *
 import tkinter as tk
 import tkinter.ttk as ttk
+from tkinter import messagebox
 
 
 class GUI:
@@ -46,6 +47,7 @@ class GUI:
         self.tree_frame.rowconfigure(1, weight=1)
 
         # loading the logo (as a gif because tkinter)
+        # and displaying the logo abouth the tree view
         self.logo_canvas = tk.Canvas(self.tree_frame, width=200, height=64)
         self.logo = tk.PhotoImage(master=self.logo_canvas, file="saldilogo.gif")
         self.logo_canvas.create_image((0,0), image=self.logo, anchor="nw")
@@ -110,6 +112,86 @@ class GUI:
         width = self.canvas.winfo_width() - padding
         self.canvas.itemconfigure("entries", width=width)
 
+    def on_return_button(self, event, i):
+        """
+        function to jump to the next entry box and save the metadata if return is pressed
+
+            i   - index     ... index of the entry in the entry list
+        """
+        if i < len(self.entry_list)-1: # exclude the last entry
+            self.entry_list[i+1].focus_set()
+
+        # get the path to the data file
+        path = os.path.join(self.working_dir, self.file_name.get())
+        # save the metadata of the entry box
+        self.MD_files[path][self.keywords[i]] = self.stringvar_list[i].get()
+
+    def on_up_button(self, event, i):
+        """
+        function to jump to the previous entry box and save the metadata if the up arrow is pressed
+
+            i   - index     ... index of the entry in the entry list
+        """
+        if i > 0: # exclude the first entry
+            self.entry_list[i-1].focus_set()
+
+        # get the path to the data file
+        path = os.path.join(self.working_dir, self.file_name.get())
+        # save the metadata of the entry box
+        self.MD_files[path][self.keywords[i]] = self.stringvar_list[i].get()
+
+    def on_double_click(self, event):
+        """
+        Function which handles the double click event on a tree element
+        inspired by:
+            https://stackoverflow.com/questions/3794268/command-for-clicking-on-the-items-of-a-tkinter-treeview-widget
+        """
+        # first identify the tree element
+        element = self.tree.identify('item',event.x,event.y)
+        # second get the path of this tree element
+        path = self.get_tree_path(element)
+
+        # check if the path is a directory (only files should be opened)
+        if os.path.isdir(path):
+            return
+
+        # control output
+        print("changed to file: ", path)
+        # this bool determines if the metadata should be saved if the file is changed
+        save_md = True
+
+        # check if the entry list was already created
+        # this is needed to set the focus on the first double clicked file
+        if self.topframe is None:
+            self.create_entry_list()
+            # do not save empty strings if this is the first opened file
+            save_md = False
+
+        # if we want to save the metadata 
+        # (everytime except the first time we click on a data file because then the entry variables are empty)
+        if save_md:
+            # save the path of the closed data file in a temp variable to save the meta data
+            old_path = os.path.join(self.working_dir, self.file_name.get())
+        
+        # set the filename label to the newly opened file
+        self.file_name.set(os.path.relpath(path, self.working_dir))
+
+        # iterate over the keywords and load the metadata from the corresponding file
+        # save the metadata of the closed file to the disc
+        # (everytime except the first time we click on a data file because then the entry variables are empty)
+        for i,keyword in enumerate(self.keywords):
+            if save_md:
+                self.MD_files[old_path][keyword] = self.stringvar_list[i].get()
+            self.stringvar_list[i].set(self.MD_files[path][keyword])
+
+    def on_closing(self):
+        """
+        Function which saves the open metadata and destroys the master window
+        """
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.master.quit()
+            self.master.destroy()
+
     def create_entry_list(self):
         """
         Function to create a scrollable resizable list of tkinter widgets
@@ -163,54 +245,31 @@ class GUI:
             self.stringvar_list.append(tk.StringVar(self.master))
             self.entry_list.append(tk.Entry(self.entry_frame, font = "Courier 11", textvariable=self.stringvar_list[-1]))
             self.entry_list[-1].grid(row=i+1, column=1, sticky="ew", pady=1)
+            
+            # bind the on return function
+            # 1. create a lambda to get a new scope where our i is not overwritten
+            #    see also https://stackoverflow.com/questions/14259072/tkinter-bind-function-with-variable-in-a-loop
+            def create_return_lambda(j):
+                return lambda event: self.on_return_button(event, j)
+            
+            # 2. bind the created lambda
+            self.entry_list[-1].bind('<Return>', create_return_lambda(i))
 
-    def on_double_click(self, event):
-        """
-        Function which handles the double click event on a tree element
-        inspired by:
-            https://stackoverflow.com/questions/3794268/command-for-clicking-on-the-items-of-a-tkinter-treeview-widget
-        """
-        # first identify the tree element
-        element = self.tree.identify('item',event.x,event.y)
-        # second get the path of this tree element
-        path = self.get_tree_path(element)
+            # doing the same for up and down arrow keys
+            # down arrow key gets the same functionality as return
+            # we can therefore reuse our functions
+            self.entry_list[-1].bind('<Down>', create_return_lambda(i))
 
-        # check if the path is a directory (only files should be opened)
-        if os.path.isdir(path):
-            return
+            # up arrow needs a similar functionality
+            def create_up_lambda(j):
+                return lambda event: self.on_up_button(event, j)
 
-        # control output
-        print("changed to file: ", path)
-        # this bool determines if the metadata should be saved if the file is changed
-        save_md = True
-
-        # check if the entry list was already created
-        # this is needed to set the focus on the first double clicked file
-        if self.topframe is None:
-            self.create_entry_list()
-            # do not save empty strings if this is the first opened file
-            save_md = False
-
-        # if we want to save the metadata 
-        # (everytime except the first time we click on a data file because then the entry variables are empty)
-        if save_md:
-            # save the path of the closed data file in a temp variable to save the meta data
-            old_path = os.path.join(self.working_dir, self.file_name.get())
-        
-        # set the filename label to the newly opened file
-        self.file_name.set(os.path.relpath(path, self.working_dir))
-
-        # iterate over the keywords and load the metadata from the corresponding file
-        # save the metadata of the closed file to the disc
-        # (everytime except the first time we click on a data file because then the entry variables are empty)
-        for i,keyword in enumerate(self.keywords):
-            if save_md:
-                self.MD_files[old_path][keyword] = self.stringvar_list[i].get()
-            self.stringvar_list[i].set(self.MD_files[path][keyword])
-
+            self.entry_list[-1].bind('<Up>', create_up_lambda(i))
 
     def start_mainloop(self):
         """
         Function which starts the tkinter main loop
+        and handles exit behaviour of the main loop
         """
+        self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.master.mainloop()

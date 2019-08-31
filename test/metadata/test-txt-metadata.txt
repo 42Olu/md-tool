@@ -3,13 +3,13 @@ path to data file: /home/niklas/projects/md-tool/test/test.txt
 title:  test
 type of data:  
 author:  
-contributors:  
+contributors:  es funktioniert
 time:  
 date:  
 location:  
 process description:  
 sensors:  
-format:  
+format:  txt, csv, ...
 units:  
-keywords:  
+keywords:  test, hoffentlich immernoch
 notes:  
