@@ -64,6 +64,10 @@ class GUI:
         # topframe is needed to create the list of entries later on
         self.topframe = None
 
+        # file_name=None is needed to counter a bug when adding or removing keywords
+        # but no tree item is selected
+        self.file_name = None
+
 
     def create_treeview(self, path, parent):   
         """
@@ -123,7 +127,7 @@ class GUI:
             self.entry_list[i+1].focus_set()
 
         # get the path to the data file
-        path = os.path.join(self.working_dir, self.file_name.get())
+        path = os.path.abspath(self.file_name.get())
         # save the metadata of the entry box
         self.MD_files[path][self.keywords[i]] = self.stringvar_list[i].get()
 
@@ -137,7 +141,7 @@ class GUI:
             self.entry_list[i-1].focus_set()
 
         # get the path to the data file
-        path = os.path.join(self.working_dir, self.file_name.get())
+        path = os.path.abspath(self.file_name.get())
         # save the metadata of the entry box
         self.MD_files[path][self.keywords[i]] = self.stringvar_list[i].get()
 
@@ -148,7 +152,7 @@ class GUI:
             i   - index     ... index of the entry in the entry list
         """
         # get the path to the data file
-        path = os.path.join(self.working_dir, self.file_name.get())
+        path = os.path.abspath(self.file_name.get())
         # save the metadata of the entry box
         self.MD_files[path][self.keywords[i]] = self.stringvar_list[i].get()
 
@@ -162,21 +166,27 @@ class GUI:
         # this indicates to the user that something happened
         self.master.focus_set()
 
-    def on_tree_selection(self, event, from_add_remove_window=False):
+    def on_tree_selection(self, event, from_window=False):
         """
         Function which handles the tree selection element
         inspired by:
             https://stackoverflow.com/questions/34849035/how-to-get-the-value-of-a-selected-treeview-item
         """
-        # first identify the selected tree element
-        #element = self.tree.identify('item',event.x,event.y)
-        element = self.tree.selection()[0]
-        # second get the path of this tree element
-        path = self.get_tree_path(element)
+        
+        if not len(self.tree.selection()) == 0:
+            # first identify the selected tree element
+            element = self.tree.selection()[0]
+            # second get the path of this tree element
+            path = self.get_tree_path(element)
+        else:
+            path = os.path.abspath(self.last_selection)
 
         # check if the path is a directory (only files should be opened)
         if os.path.isdir(path):
+            self.tree.selection_remove(element)
             return
+        else:
+            self.last_selection = path
 
         # control output
         print("changed to file: ", path)
@@ -184,7 +194,7 @@ class GUI:
         save_md = True
 
         # if coming from the add/remove window do not save
-        if from_add_remove_window:
+        if from_window:
             save_md = False
 
         # check if the entry list was already created
@@ -198,10 +208,10 @@ class GUI:
         # (everytime except the first time we click on a data file because then the entry variables are empty)
         if save_md:
             # save the path of the closed data file in a temp variable to save the meta data
-            old_path = os.path.join(self.working_dir, self.file_name.get())
+            old_path = os.path.abspath(self.file_name.get())
         
         # set the filename label to the newly opened file
-        self.file_name.set(os.path.relpath(path, self.working_dir))
+        self.file_name.set(os.path.relpath(path, os.getcwd()))
 
         # iterate over the keywords and load the metadata from the corresponding file
         # save the metadata of the closed file to the disc
@@ -218,7 +228,7 @@ class GUI:
         # if a file was opened
         if not self.topframe is None:
             # create the path
-            path = os.path.join(self.working_dir, self.file_name.get())
+            path = os.path.abspath(self.file_name.get())
 
             # save each entry
             for i,keyword in enumerate(self.keywords):
@@ -231,31 +241,36 @@ class GUI:
             keyword_string  - string        ... input string from the add/remove text
             window          - tk.Toplevel   ... the opened window to close it correctly
         """
+
+        # parse the keyword string
+        keyword_list = keyword_string.split("\n")
+
+        # remove duplicates but keep order
+        seen = set()
+        unique_data = []
+        for key in keyword_list:
+            if key not in seen:
+                unique_data.append(key)
+                seen.add(key)
+
+        # iterate over the string and trim whitespace
+        keyword_list = [key.replace("\n", "").strip() for key in keyword_list]
+
+        # remove empty strings
+        while "" in keyword_list:
+            keyword_list.remove("")
+
+        # check if the list is empty
+        if len(keyword_list) == 0:
+            # no keywords should not be possible
+            return
+
         if messagebox.askokcancel("Save Keywords", "Do you want to update the Keywords?"):
             # close the window and free self.master
             window.destroy()
 
             # save current metadata
             self.save_current_metadata()
-
-            # update all metadata keywords
-            # parse the keyword string
-            keyword_list = keyword_string.split("\n")
-
-            # remove duplicates but keep order
-            seen = set()
-            unique_data = []
-            for key in keyword_list:
-                if key not in seen:
-                    unique_data.append(key)
-                    seen.add(key)
-
-            # iterate over the string and trim whitespace
-            keyword_list = [key.replace("\n", "").strip() for key in keyword_list]
-
-            # remove empty strings
-            while "" in keyword_list:
-                keyword_list.remove("")
 
             # iterate over the md files and update the keywords
             for md in self.MD_files:
@@ -270,7 +285,7 @@ class GUI:
             # update the gui
             self.create_entry_list()
             # get the last selection and make sure no data is lost
-            self.on_tree_selection(None, from_add_remove_window=True)
+            self.on_tree_selection(None, from_window=True)
 
             # save the new keyword list
             save_keywords(self.keywords)
@@ -329,6 +344,64 @@ class GUI:
         # clicking the x should mirror the effect of clicking the save button
         add_remove.protocol("WM_DELETE_WINDOW", lambda : self.update_keywords(keyword_text.get("1.0","end"), add_remove))
 
+
+    def update_keyword(self, event, i, window):
+        """
+        function update the keyword
+
+            i   - index     ... index of the keyword
+        """
+        # temp list to check if the keyword is a duplicate
+        tmp = list(self.keywords)
+        tmp.remove(tmp[i])
+        if not self.stringvar_label_list[i].get() == "" and not self.stringvar_label_list[i].get() in tmp:
+            window.destroy()
+
+            # new keyword
+            n_keyword = self.stringvar_label_list[i].get()
+
+            # iterate over the md files and update the ith keyword
+            for md in self.MD_files:
+                # update keywords
+                self.MD_files[md].update_keyword(i, n_keyword)
+                # save md to disc
+                self.MD_files[md].write()
+
+            # update self.keywords
+            self.keywords[i] = n_keyword
+            save_keywords(self.keywords)
+        
+
+    def edit_keyword(self, event, i):
+        """
+        Function which opens a small window containing an entry to edit one keyword
+
+            i   - index ... index of the keyword/label
+        """
+        # create a second window and force it to the top
+        edit = tk.Toplevel(self.master)
+        edit.attributes("-topmost", True)
+        edit.wait_visibility()
+        edit.grab_set()
+        edit.resizable(0, 0)
+        edit.title("edit keyword")
+
+        # create the edit entry
+        edit_entry = tk.Entry(edit, textvariable=self.stringvar_label_list[i], font = "Courier 12")
+        edit_entry.grid(column=0, row=0, sticky="we", padx=10, pady=10)
+        edit.rowconfigure(0, weight=1)
+
+        # set the focus to the entry
+        edit_entry.focus_set()
+        edit_entry.icursor("end")
+
+        # bind the return key to update
+        edit_entry.bind('<Return>', lambda x: self.update_keyword(x, i, edit))
+
+        # clicking the x should mirror the effect of hitting the return key
+        edit.protocol("WM_DELETE_WINDOW", lambda : self.update_keyword(None, i, edit))              
+
+
     def create_entry_list(self):
         """
         Function to create a scrollable resizable list of tkinter widgets
@@ -369,15 +442,27 @@ class GUI:
         self.entry_frame.columnconfigure(1, weight=1)
 
         self.label_list = []
+        self.stringvar_label_list = []
         self.entry_list = []
         self.stringvar_list = []
 
         # 11. finally add the planned widgets on the widget frame
+        if not self.file_name is None:
+            self.last_selection = self.file_name.get()
         self.file_name = tk.StringVar(self.master)
         self.entry_list_title = tk.Label(self.entry_frame, font = "Courier 18", textvariable=self.file_name)
         self.entry_list_title.grid(row=0, columnspan=2, sticky="ew", pady=3, padx=15)
         for i,keyword in enumerate(self.keywords):
-            self.label_list.append(tk.Label(self.entry_frame, font = "Courier 12", text=keyword).grid(row=i+1,column=0, sticky="w", pady=1, padx=4))
+            self.stringvar_label_list.append(tk.StringVar(self.master, value=keyword))
+            self.label_list.append(tk.Label(self.entry_frame, font = "Courier 12", textvariable=self.stringvar_label_list[-1]))
+            self.label_list[-1].grid(row=i+1,column=0, sticky="w", pady=1, padx=4)
+
+            #  create a lambda to get a new scope where our i is not overwritten
+            def create_edit_keyword_lambda(j):
+                return lambda event: self.edit_keyword(event, j)
+
+            self.label_list[-1].bind('<Button-3>', create_edit_keyword_lambda(i))
+
 
             self.stringvar_list.append(tk.StringVar(self.master))
             self.entry_list.append(tk.Entry(self.entry_frame, font = "Courier 12", textvariable=self.stringvar_list[-1]))

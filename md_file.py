@@ -22,7 +22,8 @@ class MD_file:
                                           os.path.split(path)[1].replace(".", "-") + "-metadata.txt")
 
         # saving the keywords
-        self.keywords = keywords
+        # each md file needs its own copy
+        self.keywords = list(keywords)
 
         # checking if the metadata directory is initialized
         if not os.path.isdir(os.path.join(os.path.split(self.path)[0], "metadata")):
@@ -112,6 +113,16 @@ class MD_file:
         for key in self.keywords:
             if not key in self.data:
                 self.data[key] = ""
+
+    def update_keyword(self, i, keyword):
+        """
+        function to update a single keyword (index i)
+
+            i       - index  ... index of the keyword you want to update
+            keyword - string ... new keyword for index i
+        """
+        self.data[keyword] = self.data[self.keywords[i]]
+        self.keywords[i] = keyword
 
     def __getitem__(self, key):
         """
