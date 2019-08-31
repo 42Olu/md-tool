@@ -41,7 +41,8 @@ class GUI:
         self.master.rowconfigure(0, weight=1)
 
         # creating the treeview object which is used to display the files in working_dir
-        self.tree = ttk.Treeview(self.tree_frame)
+        # using selectmode browse disables multiple selections in the treeview
+        self.tree = ttk.Treeview(self.tree_frame, selectmode="browse")
         self.tree.heading("#0" ,text="File List")
         self.tree.grid(column=0, row=1, sticky="ns")
         self.tree_frame.rowconfigure(1, weight=1)
@@ -54,11 +55,11 @@ class GUI:
         self.logo_canvas.grid(column=0, row=0, sticky="nw", pady=5)
 
         # filling the treeview object
-        self.root = self.tree.insert("", "end", text=self.working_dir, open=True)
+        self.root = self.tree.insert("", "end", text=os.path.relpath(self.working_dir, os.getcwd()), open=True)
         self.create_treeview(self.working_dir, self.root)
 
-        # binding the double click event to the treeview object to open the clicked file
-        self.tree.bind("<Double-1>", self.on_double_click)
+        # binding the tree select event to the treeview object to open the selected metadata file
+        self.tree.bind("<<TreeviewSelect>>", self.on_tree_selection)
 
         # topframe is needed to create the list of entries later on
         self.topframe = None
@@ -96,7 +97,7 @@ class GUI:
         if self.tree.parent(item) == "":
             return self.tree.item(item)["text"]
         else:
-            return os.path.join(self.get_tree_path(self.tree.parent(item)), self.tree.item(item)["text"])
+            return os.path.abspath(os.path.join(self.get_tree_path(self.tree.parent(item)), self.tree.item(item)["text"]))
 
     def frame_focus(self, event):
         """
@@ -151,14 +152,25 @@ class GUI:
         # save the metadata of the entry box
         self.MD_files[path][self.keywords[i]] = self.stringvar_list[i].get()
 
-    def on_double_click(self, event):
+    def on_ctrl_s(self, event):
         """
-        Function which handles the double click event on a tree element
+        Function to save the current metadata if ctrl + s are pressed
+        """
+        # save the metadata
+        self.save_current_metadata()
+        # set focus to the master window
+        # this indicates to the user that something happened
+        self.master.focus_set()
+
+    def on_tree_selection(self, event):
+        """
+        Function which handles the tree selection element
         inspired by:
-            https://stackoverflow.com/questions/3794268/command-for-clicking-on-the-items-of-a-tkinter-treeview-widget
+            https://stackoverflow.com/questions/34849035/how-to-get-the-value-of-a-selected-treeview-item
         """
-        # first identify the tree element
-        element = self.tree.identify('item',event.x,event.y)
+        # first identify the selected tree element
+        #element = self.tree.identify('item',event.x,event.y)
+        element = self.tree.selection()[0]
         # second get the path of this tree element
         path = self.get_tree_path(element)
 
@@ -208,18 +220,6 @@ class GUI:
             for i,keyword in enumerate(self.keywords):
                 self.MD_files[path][keyword] = self.stringvar_list[i].get()
 
-    def on_closing(self):
-        """
-        Function which saves the open metadata and destroys the master window
-        """
-        # save the currently opened file
-        self.save_current_metadata()
-
-        if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            # these both calls fix the issue with linux and not closing properly
-            self.master.quit()
-            self.master.destroy()
-
     def create_entry_list(self):
         """
         Function to create a scrollable resizable list of tkinter widgets
@@ -265,13 +265,13 @@ class GUI:
 
         # 11. finally add the planned widgets on the widget frame
         self.file_name = tk.StringVar(self.master)
-        self.entry_list_title = tk.Label(self.entry_frame, font = "Courier 16", textvariable=self.file_name)
+        self.entry_list_title = tk.Label(self.entry_frame, font = "Courier 18", textvariable=self.file_name)
         self.entry_list_title.grid(row=0, columnspan=2, sticky="ew", pady=3, padx=15)
         for i,keyword in enumerate(self.keywords):
-            self.label_list.append(tk.Label(self.entry_frame, font = "Courier 11", text=keyword).grid(row=i+1,column=0, sticky="w", pady=1, padx=4))
+            self.label_list.append(tk.Label(self.entry_frame, font = "Courier 12", text=keyword).grid(row=i+1,column=0, sticky="w", pady=1, padx=4))
 
             self.stringvar_list.append(tk.StringVar(self.master))
-            self.entry_list.append(tk.Entry(self.entry_frame, font = "Courier 11", textvariable=self.stringvar_list[-1]))
+            self.entry_list.append(tk.Entry(self.entry_frame, font = "Courier 12", textvariable=self.stringvar_list[-1]))
             self.entry_list[-1].grid(row=i+1, column=1, sticky="ew", pady=1)
             
             # bind the on return function
@@ -302,6 +302,21 @@ class GUI:
 
             self.entry_list[-1].bind('<FocusOut>', create_focus_loss_lambda(i))
 
+        # bind ctrl + s to the master window to save the metadata and loose focus of the current entry
+        # this is only done now to make sure the entries already excist
+        self.master.bind('<Control-s>', self.on_ctrl_s)
+
+    def on_closing(self):
+        """
+        Function which saves the open metadata and destroys the master window
+        """
+        # save the currently opened file
+        self.save_current_metadata()
+
+        if messagebox.askokcancel("Quit", "Do you want to quit?\nProgress will be saved."):
+            # these both calls fix the issue with linux and not closing properly
+            self.master.quit()
+            self.master.destroy()
 
     def start_mainloop(self):
         """

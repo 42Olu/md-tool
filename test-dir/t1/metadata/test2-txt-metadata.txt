@@ -1,4 +1,4 @@
-path to data file: /home/niklas/projects/md-tool/test/t1/t2/test2.txt
+path to data file: /home/niklas/projects/md-tool/test-dir/t1/test2.txt
 
 title:  
 type of data:  
