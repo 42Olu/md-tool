@@ -102,12 +102,16 @@ class MD_file:
 
     def set_keywords(self, keywords):
         """
-        Setter Function to update the keyword list
+        Setter Function to update the keyword lists
         
             keywords - list     ... list of all metadata keywords
         """
         self.keywords = keywords
 
+        # add an empty string for new keywords
+        for key in self.keywords:
+            if not key in self.data:
+                self.data[key] = ""
 
     def __getitem__(self, key):
         """

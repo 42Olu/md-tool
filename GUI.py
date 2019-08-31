@@ -220,6 +220,13 @@ class GUI:
             for i,keyword in enumerate(self.keywords):
                 self.MD_files[path][keyword] = self.stringvar_list[i].get()
 
+    def create_add_remove_window(self):
+        """
+        Function which opens the add and remove keyword window.
+        """
+        add_remove = tk.Toplevel(self.master)
+
+
     def create_entry_list(self):
         """
         Function to create a scrollable resizable list of tkinter widgets
@@ -305,6 +312,12 @@ class GUI:
         # bind ctrl + s to the master window to save the metadata and loose focus of the current entry
         # this is only done now to make sure the entries already excist
         self.master.bind('<Control-s>', self.on_ctrl_s)
+
+
+        ### Functionality buttons:
+        self.add_remove_keywords = tk.Button(self.topframe,font = "Courier 11", text="add/remove\nKeywords",
+                                             bg = "gray", command=self.create_add_remove_window)
+        self.add_remove_keywords.grid(column=2, row=0, padx=10, pady=10)
 
     def on_closing(self):
         """
