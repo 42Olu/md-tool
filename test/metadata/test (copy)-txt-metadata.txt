@@ -1,4 +1,4 @@
-path to data file: /home/niklas/projects/metadata-project/test/test (copy).txt
+path to data file: /home/niklas/projects/md-tool/test/test (copy).txt
 
 title:  
 type of data:  

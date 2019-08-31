@@ -42,10 +42,17 @@ class GUI:
         # creating the treeview object which is used to display the files in working_dir
         self.tree = ttk.Treeview(self.tree_frame)
         self.tree.heading("#0" ,text="File List")
-        self.tree.pack(expand=True, fill='y')
+        self.tree.grid(column=0, row=1, sticky="ns")
+        self.tree_frame.rowconfigure(1, weight=1)
+
+        # loading the logo (as a gif because tkinter)
+        self.logo_canvas = tk.Canvas(self.tree_frame, width=200, height=64)
+        self.logo = tk.PhotoImage(master=self.logo_canvas, file="saldilogo.gif")
+        self.logo_canvas.create_image((0,0), image=self.logo, anchor="nw")
+        self.logo_canvas.grid(column=0, row=0, sticky="nw", pady=5)
 
         # filling the treeview object
-        self.root = self.tree.insert('', 'end', text=self.working_dir, open=True)
+        self.root = self.tree.insert("", "end", text=self.working_dir, open=True)
         self.create_treeview(self.working_dir, self.root)
 
         # binding the double click event to the treeview object to open the clicked file
@@ -69,7 +76,7 @@ class GUI:
             # checking if its not a metadata directory
             if not "metadata" == p:
                 #insert the element into the treeview
-                parent_element = self.tree.insert(parent, 'end', text=p, open=True)
+                parent_element = self.tree.insert(parent, "end", text=p, open=True)
 
                 # if the added element is a directory 
                 if os.path.isdir(abspath):
@@ -132,7 +139,7 @@ class GUI:
         self.topframe.columnconfigure(0, weight=4)
 
         # 8. blit the widget frame onto the canvas
-        self.canvas.create_window((0,0),window=self.entry_frame,anchor='nw', tags=["entries"])
+        self.canvas.create_window((0,0),window=self.entry_frame,anchor="nw", tags=["entries"])
         
         # 9. bind a function to the widget frame that it stays in focus and cant be scrolled away
         self.entry_frame.bind("<Configure>", self.frame_focus)
@@ -184,9 +191,18 @@ class GUI:
             # do not save empty strings if this is the first opened file
             save_md = False
 
+        # if we want to save the metadata 
+        # (everytime except the first time we click on a data file because then the entry variables are empty)
         if save_md:
+            # save the path of the closed data file in a temp variable to save the meta data
             old_path = os.path.join(self.working_dir, self.file_name.get())
+        
+        # set the filename label to the newly opened file
         self.file_name.set(os.path.relpath(path, self.working_dir))
+
+        # iterate over the keywords and load the metadata from the corresponding file
+        # save the metadata of the closed file to the disc
+        # (everytime except the first time we click on a data file because then the entry variables are empty)
         for i,keyword in enumerate(self.keywords):
             if save_md:
                 self.MD_files[old_path][keyword] = self.stringvar_list[i].get()

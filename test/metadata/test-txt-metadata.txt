@@ -1,10 +1,10 @@
-path to data file: /home/niklas/projects/metadata-project/test/test.txt
+path to data file: /home/niklas/projects/md-tool/test/test.txt
 
 title:  test
 type of data:  
-author:  test
+author:  
 contributors:  
-time:  Halli Hallo
+time:  
 date:  
 location:  
 process description:  

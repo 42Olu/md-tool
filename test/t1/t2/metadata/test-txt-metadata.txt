@@ -1,6 +1,6 @@
-path to data file: /home/niklas/projects/metadata-project/test/t1/t2/test.txt
+path to data file: /home/niklas/projects/md-tool/test/t1/t2/test.txt
 
-title:  
+title:  test
 type of data:  
 author:  
 contributors:  
