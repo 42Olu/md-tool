@@ -162,7 +162,7 @@ class GUI:
         # this indicates to the user that something happened
         self.master.focus_set()
 
-    def on_tree_selection(self, event):
+    def on_tree_selection(self, event, from_add_remove_window=False):
         """
         Function which handles the tree selection element
         inspired by:
@@ -182,6 +182,10 @@ class GUI:
         print("changed to file: ", path)
         # this bool determines if the metadata should be saved if the file is changed
         save_md = True
+
+        # if coming from the add/remove window do not save
+        if from_add_remove_window:
+            save_md = False
 
         # check if the entry list was already created
         # this is needed to set the focus on the first double clicked file
@@ -230,7 +234,46 @@ class GUI:
         if messagebox.askokcancel("Save Keywords", "Do you want to update the Keywords?"):
             # close the window and free self.master
             window.destroy()
-        
+
+            # save current metadata
+            self.save_current_metadata()
+
+            # update all metadata keywords
+            # parse the keyword string
+            keyword_list = keyword_string.split("\n")
+
+            # remove duplicates but keep order
+            seen = set()
+            unique_data = []
+            for key in keyword_list:
+                if key not in seen:
+                    unique_data.append(key)
+                    seen.add(key)
+
+            # iterate over the string and trim whitespace
+            keyword_list = [key.replace("\n", "").strip() for key in keyword_list]
+
+            # remove empty strings
+            while "" in keyword_list:
+                keyword_list.remove("")
+
+            # iterate over the md files and update the keywords
+            for md in self.MD_files:
+                # update keywords
+                self.MD_files[md].set_keywords(keyword_list)
+                # save md to disc
+                self.MD_files[md].write()
+            
+            # update keywords of gui
+            self.keywords = keyword_list
+
+            # update the gui
+            self.create_entry_list()
+            # get the last selection and make sure no data is lost
+            self.on_tree_selection(None, from_add_remove_window=True)
+
+            # save the new keyword list
+            save_keywords(self.keywords)
 
     def create_add_remove_window(self):
         """

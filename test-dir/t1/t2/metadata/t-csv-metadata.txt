@@ -1,6 +1,5 @@
 path to data file: /home/niklas/projects/md-tool/test-dir/t1/t2/t.csv
 
-process description:  
 title:  
 type of data:  
 author:  

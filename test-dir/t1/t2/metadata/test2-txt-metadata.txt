@@ -7,7 +7,6 @@ contributors:
 time:  
 date:  
 location:  
-process description:  
 sensors:  
 format:  
 units:  

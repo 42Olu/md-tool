@@ -1,6 +1,5 @@
 path to data file: /home/niklas/projects/md-tool/test-dir/test (copy).txt
 
-process description:  
 title:  
 type of data:  
 author:  
