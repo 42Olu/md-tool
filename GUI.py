@@ -465,7 +465,7 @@ class GUI:
         if name != "+":
             name_entry_stringvar.set(name)
         name_entry = tk.Entry(edit_process, textvariable=name_entry_stringvar, font="Courier 12")
-        name_entry.grid(column=0, row=1, sticky="we", padx=10, pady=10)
+        name_entry.grid(columnspan=2, row=1, sticky="we", padx=10, pady=10)
         edit_process.rowconfigure(1)
 
         tk.Label(edit_process, font="Courier 12", text="Name:").grid(column=0, row=0, sticky="w", padx=5, pady=5)
@@ -473,7 +473,7 @@ class GUI:
 
         # create the textbox for the description
         editor = tk.Text(edit_process, font = "Courier 12")
-        editor.grid(column=0, row=3, sticky="nsew", padx=10, pady=10)
+        editor.grid(columnspan=2, row=3, sticky="nsew", padx=10, pady=10)
         edit_process.rowconfigure(3, weight=1)
 
         reset_text()
@@ -483,10 +483,15 @@ class GUI:
 
         edit_process.protocol("WM_DELETE_WINDOW", lambda : self.update_processes(editor.get("1.0","end"), name, name_entry.get(), edit_process, edit_processes_window))
 
+        # adding save button
+        tk.Button(edit_process, text="save", 
+                  font = "Courier 12", bg="gray", 
+                  command=lambda : self.update_processes(editor.get("1.0","end"), name, name_entry.get(), edit_process, edit_processes_window)).grid(column=0, row=4, sticky="w", padx=5, pady=10)
+
         # adding cancel button
         tk.Button(edit_process, text="cancel", 
                   font = "Courier 12", bg="gray", 
-                  command=edit_process.destroy).grid(column=0, row=4, sticky="w", padx=5, pady=10)
+                  command=edit_process.destroy).grid(column=1, row=4, sticky="e", padx=5, pady=10)
 
 
     def create_edit_process_window(self):
@@ -730,7 +735,7 @@ class GUI:
             # the first element is the process description
             if i == 0:
                 self.stringvar_list.append(tk.StringVar(self.master))
-                self.entry_list.append(tk.OptionMenu(self.entry_frame, self.stringvar_list[0], *self.processes.get_process_names()))
+                self.entry_list.append(tk.OptionMenu(self.entry_frame, self.stringvar_list[0], command=lambda x: self.save_current_metadata(), *self.processes.get_process_names()))
                 self.entry_list[-1].grid(row=i+1, column = 1, sticky="ew", pady=3)
             else:
                 self.stringvar_list.append(tk.StringVar(self.master))

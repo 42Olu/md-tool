@@ -1,6 +1,6 @@
 path to data file: /home/niklas/projects/md-tool/test-dir/test.txt
 
-process description:  
+process description:  Hier ist eine Test Description  editing test 
 title:  test test
 type of data:  test
 author:  
