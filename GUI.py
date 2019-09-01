@@ -505,6 +505,23 @@ class GUI:
                   font = "Courier 12", bg="gray", 
                   command=edit_process.destroy).grid(column=1, row=4, sticky="e", padx=5, pady=10)
 
+    def delete_process_description(self, name, window):
+        """
+        Function to delete a process description
+
+            name    - string        ... name of the process description
+            window  - tk.Toplevel() ... handler to the process editing window
+        """
+        if messagebox.askokcancel("Are you sure?", "Do you really want to delete\n\"" + name + "\"?\nFiles with this process description\nwill be set to \"No Description\"."):
+            # delete the process description
+            self.processes.remove(name, self.processes[name])
+
+            # save the process description dict
+            save_processes(self.processes)
+
+            # resume process editing
+            window.destroy()
+            self.create_edit_process_window()
 
     def create_edit_process_window(self):
         """
@@ -547,14 +564,15 @@ class GUI:
         edit_processes.grab_set()
         edit_processes.title("edit processes")
 
+        tk.Label(edit_processes, text="<Right Click> delete, <Left Click> edit [+] new", font="Courier 12").grid(column=0, row=0, padx=10, pady=10, sticky="nw")
+
         # creating a scrollabel list of buttons
         # 1. the topframe
         edit_topframe = tk.Frame(edit_processes)
 
         # 2. set sticky to all 4 directions and the weight to >0 that the frame can be resized if the window dimensions change  
-        edit_topframe.grid(column=0, row=0, sticky="nsew", padx = 10, pady = 10)
-        edit_processes.columnconfigure(0, weight=1)
-        edit_processes.rowconfigure(0, weight=1)
+        edit_topframe.grid(column=0, row=1, sticky="nsew", padx = 10, pady = 10)
+        edit_processes.rowconfigure(1, weight=1)
 
         # 3. create the canvas and the scrollbar in the top frame 
         edit_canvas = tk.Canvas(edit_topframe)
@@ -603,7 +621,12 @@ class GUI:
             if name != "No Description":
                 process_buttons.append(tk.Button(edit_frame, font = "Courier 11", text=name,
                                              bg = "gray", command=create_edit_lambda(name, edit_processes)))
-                process_buttons[-1].grid(column=0, row=i, sticky="ew", padx=10, pady=2) 
+                process_buttons[-1].grid(column=0, row=i, sticky="ew", padx=10, pady=2)
+
+                def create_delete_lambda(x, edit_processes):
+                    return lambda ev: self.delete_process_description(x, edit_processes)
+                process_buttons[-1].bind('<Button-3>', create_delete_lambda(name, edit_processes))
+
             end = i 
 
         # + button
