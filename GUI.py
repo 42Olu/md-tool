@@ -166,6 +166,37 @@ class GUI:
         # this indicates to the user that something happened
         self.master.focus_set()
 
+    def bind_mousewheel(self, event):
+        """
+        Function to bind mouse wheel to scrolling when the mouse enters the entry frame
+        """
+        # windows
+        self.master.bind('<MouseWheel>', self.on_mousewheel) 
+        # linux
+        self.master.bind('<Button-4>', self.on_mousewheel)
+        self.master.bind('<Button-5>', self.on_mousewheel)
+
+
+    def unbind_mousewheel(self, event):
+        """
+        Function to unbind the mouse wheel if the mouse leaves the entry frame
+        """
+        # windows
+        self.master.unbind('<MouseWheel>') 
+        # linux
+        self.master.unbind('<Button-4>')
+        self.master.unbind('<Button-5>')
+
+    def on_mousewheel(self, event):
+        """
+        Function which binds mouse wheel to scrolling the canvas
+        """
+        if event.num == 5 or event.delta == -120:
+            v = 1
+        if event.num == 4 or event.delta == 120:
+            v = -1
+        self.canvas.yview_scroll(v, "units")
+
     def on_tree_selection(self, event, from_window=False):
         """
         Function which handles the tree selection element
@@ -431,11 +462,11 @@ class GUI:
         self.entry_frame = tk.Frame(self.canvas)
         
         # 6. grid the scrollbar and the canvas
-        self.scrollbar.grid(row=0,column=1, sticky="ns")
-        self.canvas.grid(row=0, column=0, sticky="nsew")
+        self.scrollbar.grid(row=1,column=1, sticky="ns", pady=10)
+        self.canvas.grid(row=1, column=0, sticky="nsew", pady=10)
         # 7. set the weights for the canvas and scrollbar so that they are resizable
-        self.topframe.rowconfigure(0, weight=4)
-        self.topframe.columnconfigure(0, weight=4)
+        self.topframe.rowconfigure(1, weight=1)
+        self.topframe.columnconfigure(0, weight=1)
 
         # 8. blit the widget frame onto the canvas
         self.canvas.create_window((0,0),window=self.entry_frame,anchor="nw", tags=["entries"])
@@ -444,6 +475,12 @@ class GUI:
         self.entry_frame.bind("<Configure>", self.frame_focus)
         # 10. bind a function to the canvas which updates the width of the widget frame if the window is resized 
         self.canvas.bind("<Configure>", self.on_canvas_resize)
+
+        # bind the mousewheel to the scrolling when mouse is on top of the frame
+        # https://stackoverflow.com/questions/17355902/python-tkinter-binding-mousewheel-to-scrollbar
+        self.entry_frame.bind('<Enter>', self.bind_mousewheel)
+        self.entry_frame.bind('<Leave>', self.unbind_mousewheel)
+
 
         # setting the weigth of the entries to 1 so that they stretch if the window is resized
         self.entry_frame.columnconfigure(1, weight=1)
@@ -457,8 +494,8 @@ class GUI:
         if not self.file_name is None:
             self.last_selection = self.file_name.get()
         self.file_name = tk.StringVar(self.master)
-        self.entry_list_title = tk.Label(self.entry_frame, font = "Courier 18", textvariable=self.file_name)
-        self.entry_list_title.grid(row=0, columnspan=2, sticky="ew", pady=3, padx=15)
+        self.entry_list_title = tk.Label(self.topframe, font = "Courier 18", textvariable=self.file_name)
+        self.entry_list_title.grid(row=0, columnspan=2, sticky="nwe", pady=10, padx=10)
         for i,keyword in enumerate(self.keywords):
             self.stringvar_label_list.append(tk.StringVar(self.master, value=keyword))
             self.label_list.append(tk.Label(self.entry_frame, font = "Courier 12", textvariable=self.stringvar_label_list[-1]))
@@ -511,7 +548,7 @@ class GUI:
         ### Functionality buttons:
         self.add_remove_keywords = tk.Button(self.topframe,font = "Courier 11", text="add/remove\nKeywords",
                                              bg = "gray", command=self.create_add_remove_window)
-        self.add_remove_keywords.grid(column=2, row=0, padx=10, pady=10)
+        self.add_remove_keywords.grid(column=2, row=1, padx=10, pady=10)
 
     def on_closing(self):
         """

@@ -21,7 +21,6 @@ def main():
 
     # load the list filled with keywords
     keywords = load_keywords()
-    print(keywords)
 
     # create the MD_file_dict
     MD_files = create_MD_file_dict(data_file_list, keywords)
