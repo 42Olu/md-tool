@@ -13,6 +13,8 @@ This file contains useful utility functions:
     get_working_dir()
     create_data_file_list(dir)
     create_MD_file_dict(data_files, keywords)
+    load_processes()
+    save_processes(PD_handler)
 """
 
 def load_keywords():
@@ -104,3 +106,33 @@ def create_MD_file_dict(data_files, keywords):
         # fill the dict
         MD_file_dict[data_file] = MD_file(data_file, keywords)
     return MD_file_dict
+
+def load_processes():
+    """
+    Function which loads the process descriptions from processes.pkl
+
+    returns:
+        pd_handler - PD_handler     ... object which handels the process descriptions
+    """
+    pd_handler = None
+
+    # check if keywords.txt is a file
+    if os.path.isfile("processes.pkl"):
+        # open the file and read the lines
+        with open("processes.pkl", "rb") as f:
+            # depickle the saved list
+            pd_handler = pickle.load(f)
+    return pd_handler
+
+
+def save_processes(pd_handler):
+    """
+    Function to save the process descriptions to processes.pkl
+
+        pd_handler - PD_handler     ... object which handels the process descriptions
+    """
+
+    # open the file 
+    with open("processes.pkl", "wb") as f: 
+        # serialize and dump the list
+        pickle.dump(pd_handler, f)

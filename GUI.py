@@ -16,18 +16,20 @@ class GUI:
         - buttons for fast process options
         - buttons to add and remove keywords
     """
-    def __init__(self, working_dir, MD_files, keywords):
+    def __init__(self, working_dir, MD_files, keywords, processes):
         """
         Initializes the GUI handler
 
             working_dir     - string    ... path to the working directory
             MD_files        - dict      ... dict containing MD_file dict wrapper for the metadata files
             keywords        - list      ... list containing all metadata keywords 
+            processes       - PD_handler... object which handels the process descriptions
         """
         # saving important parameters
         self.working_dir = working_dir
         self.MD_files = MD_files
         self.keywords = keywords
+        self.processes = processes
 
         # creating the tk master window
         self.master = tk.Tk()
@@ -296,6 +298,8 @@ class GUI:
             # no keywords should not be possible
             return
 
+        keyword_list.insert(0, self.keywords[0])
+
         if messagebox.askokcancel("Save Keywords", "Do you want to update the Keywords?"):
             # close the window and free self.master
             window.destroy()
@@ -332,8 +336,8 @@ class GUI:
             # 1. clear the text widget
             keyword_text.delete('1.0', "end")
             # 2. insert the keywords
-            for key in self.keywords:
-                if not key == "process description":
+            for i, key in enumerate(self.keywords):
+                if i != 0:
                     keyword_text.insert("end", key + '\n')
 
         # create a second window and force it to the top
@@ -496,6 +500,7 @@ class GUI:
         self.file_name = tk.StringVar(self.master)
         self.entry_list_title = tk.Label(self.topframe, font = "Courier 18", textvariable=self.file_name)
         self.entry_list_title.grid(row=0, columnspan=2, sticky="nwe", pady=10, padx=10)
+
         for i,keyword in enumerate(self.keywords):
             self.stringvar_label_list.append(tk.StringVar(self.master, value=keyword))
             self.label_list.append(tk.Label(self.entry_frame, font = "Courier 12", textvariable=self.stringvar_label_list[-1]))
@@ -507,38 +512,41 @@ class GUI:
 
             self.label_list[-1].bind('<Button-3>', create_edit_keyword_lambda(i))
 
+            # the first element is the process description
+            if i == 0:
+                self.stringvar_list.append(tk.StringVar(self.master))
+            else:
+                self.stringvar_list.append(tk.StringVar(self.master))
+                self.entry_list.append(tk.Entry(self.entry_frame, font = "Courier 12", textvariable=self.stringvar_list[-1]))
+                self.entry_list[-1].grid(row=i+1, column=1, sticky="ew", pady=1)
+                
+                # bind the on return function
+                # 1. create a lambda to get a new scope where our i is not overwritten
+                #    see also https://stackoverflow.com/questions/14259072/tkinter-bind-function-with-variable-in-a-loop
+                def create_return_lambda(j):
+                    return lambda event: self.on_return_button(event, j)
+                
+                # 2. bind the created lambda
+                self.entry_list[-1].bind('<Return>', create_return_lambda(i))
 
-            self.stringvar_list.append(tk.StringVar(self.master))
-            self.entry_list.append(tk.Entry(self.entry_frame, font = "Courier 12", textvariable=self.stringvar_list[-1]))
-            self.entry_list[-1].grid(row=i+1, column=1, sticky="ew", pady=1)
-            
-            # bind the on return function
-            # 1. create a lambda to get a new scope where our i is not overwritten
-            #    see also https://stackoverflow.com/questions/14259072/tkinter-bind-function-with-variable-in-a-loop
-            def create_return_lambda(j):
-                return lambda event: self.on_return_button(event, j)
-            
-            # 2. bind the created lambda
-            self.entry_list[-1].bind('<Return>', create_return_lambda(i))
+                # doing the same for up and down arrow keys
+                # down arrow key gets the same functionality as return
+                # we can therefore reuse our functions
+                self.entry_list[-1].bind('<Down>', create_return_lambda(i))
 
-            # doing the same for up and down arrow keys
-            # down arrow key gets the same functionality as return
-            # we can therefore reuse our functions
-            self.entry_list[-1].bind('<Down>', create_return_lambda(i))
+                # up arrow needs a similar functionality
+                def create_up_lambda(j):
+                    return lambda event: self.on_up_button(event, j)
 
-            # up arrow needs a similar functionality
-            def create_up_lambda(j):
-                return lambda event: self.on_up_button(event, j)
+                self.entry_list[-1].bind('<Up>', create_up_lambda(i))
 
-            self.entry_list[-1].bind('<Up>', create_up_lambda(i))
+                # bind focus out event to save the metadata 
+                # this double saves in case of enter, up or down but is mainly if the mouse clicks on something different
+                # this is mainly a safety measure to minimize data loss
+                def create_focus_loss_lambda(j):
+                    return lambda event: self.on_entry_focus_loss(event, j)
 
-            # bind focus out event to save the metadata 
-            # this double saves in case of enter, up or down but is mainly if the mouse clicks on something different
-            # this is mainly a safety measure to minimize data loss
-            def create_focus_loss_lambda(j):
-                return lambda event: self.on_entry_focus_loss(event, j)
-
-            self.entry_list[-1].bind('<FocusOut>', create_focus_loss_lambda(i))
+                self.entry_list[-1].bind('<FocusOut>', create_focus_loss_lambda(i))
 
         # bind ctrl + s to the master window to save the metadata and loose focus of the current entry
         # this is only done now to make sure the entries already excist

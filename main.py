@@ -4,6 +4,7 @@ from utils import *
 import tkinter as tk
 import tkinter.ttk as ttk
 from GUI import GUI
+from process_description import PD_handler
 
 
 def main():
@@ -22,11 +23,24 @@ def main():
     # load the list filled with keywords
     keywords = load_keywords()
 
+    if keywords == []:
+        print("no keywords.pkl found!")
+        print("abort start to save metadata")
+        exit()
+
+    # load the process descriptions
+    processes = load_processes()
+    
+    if processes is None:
+        print("processes.pkl not found. creating empty one.")
+        processes = PD_handler()
+        save_processes(processes)
+
     # create the MD_file_dict
     MD_files = create_MD_file_dict(data_file_list, keywords)
     
     # create the gui object
-    gui_handler = GUI(working_dir, MD_files, keywords)
+    gui_handler = GUI(working_dir, MD_files, keywords, processes)
     # start the mainloop
     gui_handler.start_mainloop()
     
