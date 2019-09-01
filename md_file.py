@@ -107,7 +107,7 @@ class MD_file:
         
             keywords - list     ... list of all metadata keywords
         """
-        self.keywords = keywords
+        self.keywords = list(keywords)
 
         # add an empty string for new keywords
         for key in self.keywords:

@@ -1,7 +1,7 @@
 path to data file: /home/niklas/projects/md-tool/test-dir/test.txt
 
-title:  test
-type of data:  
+title:  test test
+type of data:  test
 author:  
 contributors:  
 time:  

@@ -406,6 +406,13 @@ class GUI:
         """
         Function to create a scrollable resizable list of tkinter widgets
         """
+        # check if the list is already created
+        if not self.topframe is None:
+            # this means that we come from a window which updates the entry list
+            # we therefore need to destroy the old list
+            #self.topframe.grid_forget()
+            self.topframe.destroy()
+
         # to get a scrollable list of tkinter widgets which are resizable the following steps are needed:
         # 1. create a top frame
         #       this frame will hold the canvas and scrollbar so that they are the same size and can be displayed on the grid
