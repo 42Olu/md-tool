@@ -105,11 +105,25 @@ class GUI:
         else:
             return os.path.abspath(os.path.join(self.get_tree_path(self.tree.parent(item)), self.tree.item(item)["text"]))
 
+    def edit_scroll_frame_focus(self, event, edit_canvas):
+        """
+        Function so that the edit window scroll region stays in focus
+        """
+        edit_canvas.configure(scrollregion=edit_canvas.bbox("all"))
+
     def frame_focus(self, event):
         """
         Reset the scroll region to encompass the inner frame
         """
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def on_edit_canvas_resize(self, event, edit_canvas):
+        """
+        Function to resize the entry list if the canvas is resized
+        """
+        padding = 10
+        width = edit_canvas.winfo_width() - padding
+        edit_canvas.itemconfigure("edit", width=width)
 
     def on_canvas_resize(self, event):
         """
@@ -139,7 +153,7 @@ class GUI:
 
             i   - index     ... index of the entry in the entry list
         """
-        if i > 0: # exclude the first entry
+        if i > 1: # exclude the first entry
             self.entry_list[i-1].focus_set()
 
         # get the path to the data file
@@ -250,9 +264,16 @@ class GUI:
         # save the metadata of the closed file to the disc
         # (everytime except the first time we click on a data file because then the entry variables are empty)
         for i,keyword in enumerate(self.keywords):
-            if save_md:
-                self.MD_files[old_path][keyword] = self.stringvar_list[i].get()
-            self.stringvar_list[i].set(self.MD_files[path][keyword])
+            # process description
+            if i == 0:
+                if save_md:
+                    self.MD_files[old_path][keyword] = self.processes[self.stringvar_list[i].get()]
+                self.stringvar_list[i].set(self.processes[[self.MD_files[path][keyword]]])
+            # every other entry
+            else:
+                if save_md:
+                    self.MD_files[old_path][keyword] = self.stringvar_list[i].get()
+                self.stringvar_list[i].set(self.MD_files[path][keyword])
 
     def save_current_metadata(self):
         """
@@ -265,7 +286,10 @@ class GUI:
 
             # save each entry
             for i,keyword in enumerate(self.keywords):
-                self.MD_files[path][keyword] = self.stringvar_list[i].get()
+                if i == 0:
+                    self.MD_files[path][keyword] = self.processes[self.stringvar_list[i].get()]
+                else:
+                    self.MD_files[path][keyword] = self.stringvar_list[i].get()
 
     def update_keywords(self, keyword_string, window):
         """
@@ -342,7 +366,6 @@ class GUI:
 
         # create a second window and force it to the top
         add_remove = tk.Toplevel(self.master)
-        #add_remove.attributes("-topmost", True)
         add_remove.grab_set()
         add_remove.title("add/remove keywords")
 
@@ -378,6 +401,198 @@ class GUI:
 
         # clicking the x should mirror the effect of clicking the save button
         add_remove.protocol("WM_DELETE_WINDOW", lambda : self.update_keywords(keyword_text.get("1.0","end"), add_remove))
+
+
+    def update_processes(self, descr, old_name, name, edit_window, edit_processes_window):
+        """
+        Function to update the process description after closing the description editor
+
+            descr       - string        ... description of the process
+            name        - name          ... name of the process
+            edit_window - tk.Toplevel() ... the editor window
+        """
+        descr = descr.replace("\n", " ")
+
+        if name == "":
+            return
+
+        if name in self.processes.get_process_names() and name != old_name:
+            return
+
+        # close the window and free self.master
+        edit_window.destroy()
+
+        # if the name needs to be updated
+        if old_name in self.processes.get_process_names() and name != old_name:
+            # if the description needs to be updated
+            if self.processes[old_name] != descr:
+                self.processes[old_name] = descr
+            self.processes[[descr]] = name
+        else:
+            self.processes[name] = descr
+
+        save_processes(self.processes)
+        edit_processes_window.destroy()
+        self.create_edit_process_window()
+
+
+    def edit_process(self, name, edit_processes_window):
+        """
+        Function which opens an editor window to edit a process description
+
+            name    - string    ... name of the process description
+        """
+        def reset_text():
+            """
+            function needed to reset the text widget
+            """
+            # 1. clear the text widget
+            editor.delete('1.0', "end")
+            if name in self.processes.get_process_names():
+                # 2. insert the description
+                editor.insert("end", self.processes[name])
+
+        # create a window and force it to the top
+        edit_process = tk.Toplevel(self.master)
+        edit_process.grab_set()
+        if name == "+":
+            edit_process.title("add process description")
+        else:
+            edit_process.title(name)
+
+        # create the entry for the name
+        name_entry_stringvar = tk.StringVar(edit_process, value="")
+        if name != "+":
+            name_entry_stringvar.set(name)
+        name_entry = tk.Entry(edit_process, textvariable=name_entry_stringvar, font="Courier 12")
+        name_entry.grid(column=0, row=1, sticky="we", padx=10, pady=10)
+        edit_process.rowconfigure(1)
+
+        tk.Label(edit_process, font="Courier 12", text="Name:").grid(column=0, row=0, sticky="w", padx=5, pady=5)
+        tk.Label(edit_process, font="Courier 12", text="Process Description:").grid(column=0, row=2, sticky="w", padx=5, pady=5)
+
+        # create the textbox for the description
+        editor = tk.Text(edit_process, font = "Courier 12")
+        editor.grid(column=0, row=3, sticky="nsew", padx=10, pady=10)
+        edit_process.rowconfigure(3, weight=1)
+
+        reset_text()
+
+        # bind ctrl + s to exit window + save
+        edit_process.bind('<Control-s>', lambda x: self.update_processes(editor.get("1.0","end"), name, name_entry.get(), edit_process, edit_processes_window))
+
+        edit_process.protocol("WM_DELETE_WINDOW", lambda : self.update_processes(editor.get("1.0","end"), name, name_entry.get(), edit_process, edit_processes_window))
+
+        # adding cancel button
+        tk.Button(edit_process, text="cancel", 
+                  font = "Courier 12", bg="gray", 
+                  command=edit_process.destroy).grid(column=0, row=4, sticky="w", padx=5, pady=10)
+
+
+    def create_edit_process_window(self):
+        """
+        Function that creates the editing window for process descriptions
+        """
+        def bind_edit_mousewheel(event):
+            """
+            Function to bind mouse wheel to scrolling when the mouse enters the process frame
+            """
+            # windows
+            edit_processes.bind('<MouseWheel>', on_edit_mousewheel) 
+            # linux
+            edit_processes.bind('<Button-4>', on_edit_mousewheel)
+            edit_processes.bind('<Button-5>', on_edit_mousewheel)
+
+
+        def unbind_edit_mousewheel(event):
+            """
+            Function to unbind the mouse wheel if the mouse leaves the process frame
+            """
+            # windows
+            edit_processes.unbind('<MouseWheel>') 
+            # linux
+            edit_processes.unbind('<Button-4>')
+            edit_processes.unbind('<Button-5>')
+
+        def on_edit_mousewheel(event):
+            """
+            Function which binds mouse wheel to scrolling the canvas
+            """
+            if event.num == 5 or event.delta == -120:
+                v = 1
+            if event.num == 4 or event.delta == 120:
+                v = -1
+            edit_canvas.yview_scroll(v, "units")
+
+        
+        # create a second window and force it to the top
+        edit_processes = tk.Toplevel(self.master)
+        edit_processes.grab_set()
+        edit_processes.title("edit processes")
+
+        # creating a scrollabel list of buttons
+        # 1. the topframe
+        edit_topframe = tk.Frame(edit_processes)
+
+        # 2. set sticky to all 4 directions and the weight to >0 that the frame can be resized if the window dimensions change  
+        edit_topframe.grid(column=0, row=0, sticky="nsew", padx = 10, pady = 10)
+        edit_processes.columnconfigure(0, weight=1)
+        edit_processes.rowconfigure(0, weight=1)
+
+        # 3. create the canvas and the scrollbar in the top frame 
+        edit_canvas = tk.Canvas(edit_topframe)
+        edit_scrollbar = tk.Scrollbar(edit_topframe, orient="vertical", command=edit_canvas.yview)
+        # 4. add the scrollbar to the canvas
+        edit_canvas.configure(yscrollcommand=edit_scrollbar.set)
+
+        # 5. create the frame for the widgets on the canvas
+        edit_frame = tk.Frame(edit_canvas)
+        
+        # 6. grid the scrollbar and the canvas
+        edit_scrollbar.grid(row=0,column=1, sticky="ns", pady=10)
+        edit_canvas.grid(row=0, column=0, sticky="nsew", pady=10)
+        # 7. set the weights for the canvas and scrollbar so that they are resizable
+        edit_topframe.columnconfigure(0, weight=1)
+        edit_topframe.rowconfigure(0, weight=1)
+
+        # because of reasons we need to do this or else is the scrollbar not resizable
+        # (maybe because its a toplevel window and not a master? i dont know...)
+        edit_scrollbar.columnconfigure(0, weight=1)
+
+        # 8. blit the widget frame onto the canvas
+        edit_canvas.create_window((0,0),window=edit_frame, anchor="nw", tags=["edit"])
+        
+        # 9. bind a function to the widget frame that it stays in focus and cant be scrolled away
+        edit_frame.bind("<Configure>", lambda x: self.edit_scroll_frame_focus(x, edit_canvas))
+        # 10. bind a function to the canvas which updates the width of the widget frame if the window is resized 
+        edit_canvas.bind("<Configure>", lambda x: self.on_edit_canvas_resize(x, edit_canvas))
+
+        # bind the mousewheel to the scrolling when mouse is on top of the frame
+        # https://stackoverflow.com/questions/17355902/python-tkinter-binding-mousewheel-to-scrollbar
+        edit_frame.bind('<Enter>', bind_edit_mousewheel)
+        edit_frame.bind('<Leave>', unbind_edit_mousewheel)
+
+        # setting the weigth of the entries to 1 so that they stretch if the window is resized
+        edit_frame.columnconfigure(0, weight=1)
+
+        process_buttons = []
+        end = 0
+        for i, name in enumerate(self.processes.get_process_names()):
+            # create a lambda to get a new scope where our i is not overwritten
+            #    see also https://stackoverflow.com/questions/14259072/tkinter-bind-function-with-variable-in-a-loop
+            def create_edit_lambda(x, edit_processes):
+                return lambda : self.edit_process(x, edit_processes)
+            
+            if name != "No Description":
+                process_buttons.append(tk.Button(edit_frame, font = "Courier 11", text=name,
+                                             bg = "gray", command=create_edit_lambda(name, edit_processes)))
+                process_buttons[-1].grid(column=0, row=i, sticky="ew", padx=10, pady=2) 
+            end = i 
+
+        # + button
+        process_buttons.append(tk.Button(edit_frame, font = "Courier 11", text="+",
+                                         bg = "gray", command=lambda : self.edit_process("+", edit_processes)))
+        process_buttons[-1].grid(column=0, row=end+1, sticky="ew", padx=10, pady=7)
 
 
     def update_keyword(self, event, i, window):
@@ -515,6 +730,8 @@ class GUI:
             # the first element is the process description
             if i == 0:
                 self.stringvar_list.append(tk.StringVar(self.master))
+                self.entry_list.append(tk.OptionMenu(self.entry_frame, self.stringvar_list[0], *self.processes.get_process_names()))
+                self.entry_list[-1].grid(row=i+1, column = 1, sticky="ew", pady=3)
             else:
                 self.stringvar_list.append(tk.StringVar(self.master))
                 self.entry_list.append(tk.Entry(self.entry_frame, font = "Courier 12", textvariable=self.stringvar_list[-1]))
@@ -554,9 +771,16 @@ class GUI:
 
 
         ### Functionality buttons:
-        self.add_remove_keywords = tk.Button(self.topframe,font = "Courier 11", text="add/remove\nKeywords",
+        self.button_frame = tk.Frame(self.topframe)
+        self.button_frame.grid(column=2, row=1, padx=10, pady=10)
+
+        self.add_remove_keywords = tk.Button(self.button_frame, font = "Courier 11", text="add/remove\nKeywords",
                                              bg = "gray", command=self.create_add_remove_window)
-        self.add_remove_keywords.grid(column=2, row=1, padx=10, pady=10)
+        self.add_remove_keywords.grid(column=0, row=0, pady=5, sticky="ew")
+
+        self.edit_processes_button = tk.Button(self.button_frame, font = "Courier 11", text="edit\nprocesses",
+                                             bg = "gray", command=self.create_edit_process_window)
+        self.edit_processes_button.grid(column=0, row=1, pady=5, sticky="ew")
 
     def on_closing(self):
         """

@@ -38,6 +38,12 @@ class PD_handler:
         self.names.pop(name)
         self.descriptions.pop(descr)
 
+    def get_process_names(self):
+        """
+        Function to get all known process names
+        """
+        return list(self.names.keys())
+
     def __getitem__(self, key):
         """
         Operator overloading to simplify usage of the class
