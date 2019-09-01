@@ -266,6 +266,10 @@ class GUI:
         for i,keyword in enumerate(self.keywords):
             # process description
             if i == 0:
+                # make sure the process description is valid and use No Description if not
+                if not self.stringvar_list[i].get() in self.processes.get_process_names():
+                    self.stringvar_list[i].set(self.processes[[""]])
+
                 if save_md:
                     self.MD_files[old_path][keyword] = self.processes[self.stringvar_list[i].get()]
                 self.stringvar_list[i].set(self.processes[[self.MD_files[path][keyword]]])
@@ -599,6 +603,21 @@ class GUI:
                                          bg = "gray", command=lambda : self.edit_process("+", edit_processes)))
         process_buttons[-1].grid(column=0, row=end+1, sticky="ew", padx=10, pady=7)
 
+        # exit behaviour
+        edit_processes.protocol("WM_DELETE_WINDOW", lambda : self.exit_process_editing(edit_processes))
+
+    def exit_process_editing(self, processes_window):
+        """
+        Function to handle the exit behaviour of the edit process window
+
+            process_window  - tk.Toplevel() ... a handle to the editing window
+        """
+        processes_window.destroy()
+        # update the entry list
+        self.create_entry_list()
+        # get last selected
+        self.on_tree_selection(None, from_window=True)
+
 
     def update_keyword(self, event, i, window):
         """
@@ -655,7 +674,6 @@ class GUI:
 
         # clicking the x should mirror the effect of hitting the return key
         edit.protocol("WM_DELETE_WINDOW", lambda : self.update_keyword(None, i, edit))              
-
 
     def create_entry_list(self):
         """
