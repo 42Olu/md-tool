@@ -44,6 +44,12 @@ class PD_handler:
         """
         return list(self.names.keys())
 
+    def get_process_descriptions(self):
+        """
+        Function to get all known process descriptions
+        """
+        return list(self.descriptions.keys())
+
     def __getitem__(self, key):
         """
         Operator overloading to simplify usage of the class

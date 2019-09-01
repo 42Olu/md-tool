@@ -272,6 +272,10 @@ class GUI:
 
                 if save_md:
                     self.MD_files[old_path][keyword] = self.processes[self.stringvar_list[i].get()]
+
+                # make sure, that an up to date description is saved
+                if not self.MD_files[path][keyword] in self.processes.get_process_descriptions():
+                    self.MD_files[path][keyword] = self.processes[self.stringvar_list[i].get()]
                 self.stringvar_list[i].set(self.processes[[self.MD_files[path][keyword]]])
             # every other entry
             else:
@@ -425,6 +429,10 @@ class GUI:
 
         # close the window and free self.master
         edit_window.destroy()
+
+        # check if the old name is currently selected in the open file
+        if old_name == self.stringvar_list[0].get():
+            self.stringvar_list[0].set(name)
 
         # if the name needs to be updated
         if old_name in self.processes.get_process_names() and name != old_name:
@@ -613,8 +621,13 @@ class GUI:
             process_window  - tk.Toplevel() ... a handle to the editing window
         """
         processes_window.destroy()
+        # backup opened description
+        tmp = self.stringvar_list[0].get()
         # update the entry list
         self.create_entry_list()
+        # overwrite new process description
+        # this leads to an updated standard selection in the option menu
+        self.stringvar_list[0].set(tmp)
         # get last selected
         self.on_tree_selection(None, from_window=True)
 
