@@ -24,17 +24,17 @@ def main():
     keywords = load_keywords()
 
     if keywords == []:
-        print("no keywords.pkl found!")
-        print("abort start to save metadata")
+        print("keywords.pkl not found!")
+        print("abort start to save metadata.")
         exit()
 
     # load the process descriptions
     processes = load_processes()
     
     if processes is None:
-        print("processes.pkl not found. creating empty one.")
-        processes = PD_handler()
-        save_processes(processes)
+        print("processes.pkl not found!")
+        print("abort start to save metadata.")
+        exit()
 
     # create the MD_file_dict
     MD_files = create_MD_file_dict(data_file_list, keywords)

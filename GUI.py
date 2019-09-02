@@ -427,6 +427,9 @@ class GUI:
         if name in self.processes.get_process_names() and name != old_name:
             return
 
+        if descr in self.processes.get_process_descriptions() and (old_name == "+" or descr != self.processes[old_name]):
+            return
+
         # close the window and free self.master
         edit_window.destroy()
 
@@ -438,7 +441,15 @@ class GUI:
         if old_name in self.processes.get_process_names() and name != old_name:
             # if the description needs to be updated
             if self.processes[old_name] != descr:
+                # update the saved descriptions for old name
+                for md in self.MD_files:
+                    # if one md file uses the old description
+                    if self.MD_files[md][self.keywords[0]] == self.processes[old_name]:
+                        # set the new description
+                        self.MD_files[md][self.keywords[0]] = descr
+                # update the internal description
                 self.processes[old_name] = descr
+            # update the name of the edited process
             self.processes[[descr]] = name
         else:
             self.processes[name] = descr
@@ -564,7 +575,7 @@ class GUI:
         edit_processes.grab_set()
         edit_processes.title("edit processes")
 
-        tk.Label(edit_processes, text="<Right Click> delete, <Left Click> edit [+] new", font="Courier 12").grid(column=0, row=0, padx=10, pady=10, sticky="nw")
+        tk.Label(edit_processes, text="<Right Click> delete, <Left Click> edit, [+] new", font="Courier 12").grid(column=0, row=0, padx=10, pady=10, sticky="nw")
 
         # creating a scrollabel list of buttons
         # 1. the topframe
