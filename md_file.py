@@ -60,7 +60,7 @@ class MD_file:
         # parsing the actual data
         for line in md:
             # getting the key and the data
-            key, info = line.split(":  ")
+            key, info = line.split("::  ")
 
             # writing the data into our data dict
             self.data[key] = info.replace("\n", "")
@@ -82,7 +82,7 @@ class MD_file:
         # iterate over the data dict
         for key in self.keywords:
             # adding the key, info pair to the save_string
-            save_string += key + ":  " + self.data[key] + "\n"
+            save_string += key + "::  " + self.data[key] + "\n"
         
         # returning the created string
         return save_string

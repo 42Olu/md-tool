@@ -1,15 +1,15 @@
 path to data file: /home/niklas/projects/md-tool/test-dir/t1/t2/t.csv
 
-process descr:  
-title:  
-type of data:  
-author:  
-contributors:  
-time:  
-date:  
-location:  
-sensors:  
-format:  
-units:  
-keywords:  
-notes:  
+process descr::  
+title::  
+type of data::  
+author::  
+contributors::  
+time::  
+date::  
+location::  
+sensors::  
+format::  
+units::  
+keywords::  
+notes::  

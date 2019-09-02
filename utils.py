@@ -82,7 +82,7 @@ def create_data_file_list(dir):
 
             # check if metadata is in the filename or directory above
             if not "metadata" in f and not "metadata" in os.path.split(root)[1]:
-                data_file_list.append(os.path.join(root, f))
+                data_file_list.append(path)
 
     return data_file_list
 
