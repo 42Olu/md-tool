@@ -5,6 +5,53 @@ from tkinter import messagebox
 from tkinter import filedialog
 from process_description import PD_handler
 
+def extract_keywords(path, skip_pd=False):
+    """
+    Function to extract the keywords from a given Metadata file
+
+        path    - string    ... path to the file
+    returns:
+        keys    - list      ... a list containing the keywords foun in the file
+    """
+    with open(path, "r") as f:
+        lines = f.readlines()
+    if not skip_pd:
+        # if process description should not be skipped
+        if lines[1] == "\n":
+            lines = lines[2:]
+        else:
+            lines = lines[1:]
+    else:
+        if lines[1] == "\n":
+            lines = lines[3:]
+        else:
+            lines = lines[2:]
+
+
+    keys = [line.split(":")[0] for line in lines]
+    return keys
+
+def extract_process_description(path):
+    """
+    Function to extract the process description from a given Metadata file
+
+        path    - string    ... path to the file
+    returns:
+        pd      - string    ... contains the extracted process description
+    """
+    with open(path, "r") as f:
+        lines = f.readlines()
+
+    lines = [line.replace("\n", "") for line in lines]
+
+    if lines[1] == "":
+        pd = lines[2].split("::  ")[1]
+    else:
+        pd = lines[1].split("::  ")[1]
+
+    return pd
+
+
 def recover_keywords():
     """
     The purpose of this Function is to recover keywords from a given metadata file
@@ -18,12 +65,8 @@ def recover_keywords():
         exit()
 
     if messagebox.askyesno("Recovering Keywords", "Yes: to try and recover from Metadata from metadata file\nNo:  to create a new empty keyword file"):
-        md = filedialog.askopenfilename()
-        with open(md, "r") as f:
-            lines = f.readlines()
-
-        lines = lines[2:]
-        keys = [line.split(":")[0] for line in lines]
+        keys = extract_keywords(filedialog.askopenfilename())
+        
         if messagebox.askyesno("Found Keys", "Found the following keys:\n"+str(keys)+"\nDo you want to save them?"):
             save_keywords(keys)
             return True
@@ -68,11 +111,7 @@ def recover_processes():
 
         # loop over the metadata files and search non empty descriptions
         for md in metadata_file_list:
-            with open(md, "r") as f:
-                lines = f.readlines()
-            lines = [line.replace("\n", "") for line in lines]
-
-            pd = lines[2].split("::  ")[1]
+            pd = extract_process_description(md)
 
             if pd != "":
                 descriptions.append(pd)
@@ -99,3 +138,86 @@ def recover_processes():
             save_processes(PD_handler())
             return True
     return False
+
+
+def recover_from_other_users(path, keywords, processes):
+    """
+    Function which tries to recover process descriptions and keywords from other 
+    users or instances of this tool which use their own keywords.pkl and processes.pkl.
+
+        path        - string        ... path to the working directory
+        keywords    - list          ... containing the known keywords
+        processes   - PD_handler    ... contains the known processes
+    returns
+        bools       - tuple         ... should keywords.pkl and processes.pkl be reloaded
+    """
+    # initialize metadata file list
+    metadata_file_list = []
+
+    # create directory walk
+    w = os.walk(path)
+    # filling the list with all file paths
+    for root, _, files in w:
+        # iterate over all files
+        for f in files:
+            # create the path
+            path = os.path.join(root, f)
+
+            # check if metadata is in the filename or directory above
+            if  "metadata" in f or "metadata" in os.path.split(root)[1]:
+                metadata_file_list.append(path)
+
+    keys = []
+    pds = []
+    # iterate over the found md_files and save the found keys/pds
+    for md_file in metadata_file_list:
+        k = extract_keywords(md_file, skip_pd=True)
+        keys.extend(list(set(keys) - set(k)))
+
+        p = extract_process_description(md_file)
+        if not p in pds:
+            pds.append(p)
+
+    # get the elements not already found in processes.pkl and keywords.pkl
+    not_saved_keys = list(set(keys) - set(keywords))
+    not_saved_pds = list(set(pds) - set(processes.get_process_descriptions()))
+
+    if len(not_saved_keys) > 0:
+        # if keys were found show them to the user and ask if he wants to save them
+        if messagebox.askyesno("Found unknown Keywords!", "The following unkown keywords were found in the working directory:\n" + str(not_saved_keys)
+            + "\nDo you want to update your keywords.pkl?\n\nWarning: not updating will delete metadata in these unkown keywords."):
+            keywords.extend(not_saved_keys)
+            save_keywords(keywords)
+            # true as in reload keywords
+            reload_keywords = True
+        else:
+            # as in do not reload keywords
+            reload_keywords = False
+    else:
+        reload_keywords = False
+
+    if len(not_saved_pds) > 0:
+        if messagebox.askyesno("Found unknown Process Descriptions!", "The following unkown process descriptions were found in the working directory:\n" + str(not_saved_pds)
+            + "\nDo you want to update your processes.pkl?\n\nWarning: not updating will delete these process descriptions. Saving them will save them with placeholder names."):
+            for i,pd in enumerate(not_saved_pds):
+                name = "descr_"+str(i)
+                p_names = processes.get_process_names()
+                j=1
+                while name in p_names:
+                    name = name.split("(")[0]
+                    name = name+"("+str(j)+")"
+
+                processes[[pd]] = name
+
+            save_processes(processes)
+
+            # return true as in reload processes
+            reload_processes = True
+        else:
+            # as in do not reload processes
+            reload_processes = False
+    else:
+        reload_processes = False
+
+    return reload_keywords, reload_processes
+    

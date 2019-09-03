@@ -47,6 +47,15 @@ def main():
     if not type(working_dir) is str:
         exit()
 
+    # search for unkown keywords or processes in the working directory
+    reload_keywords, reload_processes = recover_from_other_users(working_dir, keywords, processes)
+
+    if reload_keywords:
+        keywords = load_keywords()
+
+    if reload_processes:
+        processes = load_processes()
+
     # create the list with all file paths
     data_file_list = create_data_file_list(working_dir)
 
@@ -60,8 +69,6 @@ def main():
     
 
     
-
-
 
 
 

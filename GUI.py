@@ -524,6 +524,10 @@ class GUI:
             window  - tk.Toplevel() ... handler to the process editing window
         """
         if messagebox.askokcancel("Are you sure?", "Do you really want to delete\n\"" + name + "\"?\nFiles with this process description\nwill be set to \"No Description\"."):
+            # loop over md files and delete these process description
+            for md in self.MD_files:
+                if self.MD_files[md][self.keywords[0]] == self.processes[name]:
+                    self.MD_files[md][self.keywords[0]] = ""
             # delete the process description
             self.processes.remove(name, self.processes[name])
 
