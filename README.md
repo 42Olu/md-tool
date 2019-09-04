@@ -1,4 +1,5 @@
 # General Information
+* if you have any questions or problems send me an e-mail
 * this tools purpose is to manage metadata of all data files in a given working directory
 * the test_dir folder is a directory to test out the tool and see if it fits your needs
 * if metadata already exists and you want to start using this tool i would suggest
@@ -18,10 +19,11 @@
 ```
 md_tool.bat
 ```
-* it can also be run on all operating systems with:
+* it can also theoretically be run on all operating systems with:
 ```
-python3 main.py
+python main.py
 ```
+if python is the path to a python 3 exe.
 
 * if you select a working directory without stored metadata it will initialize metadata files in seperate folders
 ```
@@ -102,3 +104,6 @@ metadata keyword::
 # Warnings
 * I tried my best to test this tool and eliminate bugs but my advice would be the following:
   * backup your metadata regularly in case something is lost or overwritten to eliminate the possibility to lose your metadata
+* I tested the tool most extensively on ubuntu (the development platform)
+* I also tested the tool on Windows
+* in theory it should also run on mac os
