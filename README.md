@@ -1,13 +1,13 @@
 # General Information
 * if you have any questions or problems send me an e-mail
 * this tools purpose is to manage metadata of all data files in a given working directory
+* this includes managing a list of keywords and process descriptions
 * the test_dir folder is a directory to test out the tool and see if it fits your needs
 * if metadata already exists and you want to start using this tool i would suggest
   1. backup the existing metadata
   2. delete the metadata folders 
   3. copy the excisting metadata manually into the tool
   * this insures that no metadata is lost and the tool works properly
-* this includes managing a list of keywords and process descriptions
 * it needs a python 3 installation to work
 
 * for Linux use the following command to start it:
