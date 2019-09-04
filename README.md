@@ -60,7 +60,7 @@ path to data file: /path/to/the/data/file.ext
 metadata keyword::  
 ...
 ```
-* the separator between the keyword and the metadata is <pre>"::  "</pre> = ColonColonSpaceSpace
+* the separator between the keyword and the metadata is <pre>"::  "</pre> written out ColonColonSpaceSpace
 
 # Instructions
 
