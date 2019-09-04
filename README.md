@@ -4,7 +4,7 @@
   1. backup the existing metadata
   2. delete the metadata folders 
   3. copy the excisting metadata manually into the tool
-  * this insures that no metadata is lost
+  * this insures that no metadata is lost and the tool works properly
 * this includes managing a list of keywords and process descriptions
 * it needs a python 3 installation to work
 
@@ -66,7 +66,20 @@ metadata keyword::
 ...
 ```
 * the separator between the keyword and the metadata is <pre>"::  "</pre> written out ColonColonSpaceSpace
+  * this can be used to manually add metadata with a text editor
 
 # Instructions
+* after starting the tool it will warn you if no keywords.pkl or processes.pkl is found
+  * the recovery will be started to create the missing files from existing metadata or create empty files
+
+* If no warnung occured you will be able to select the working directory which includes your datafiles you want to add or edit the metadata of
+  * it also works if you select a parent directory which holds your data directories
+
+* The tool will warn you if unknown keywords or processes are found inside this directory
+  * this can happen if other people with their own instances of the tool edited metadata for this directory and added processes or keywords
+* you can import these unknown keywords or processes into your keywords.pkl or processes.pkl
+  * <span style="color:blue">WARNING:</span> if you choose to not import these unknown keywords or processes they will be deleted from the metadata which could lead to the loss of wanted metadata
+
+
 
 # Warnings
