@@ -6,8 +6,8 @@
 * if metadata already exists and you want to start using this tool i would suggest
   1. backup the existing metadata
   2. delete the metadata folders 
-  3. copy the excisting metadata manually into the tool
-  * this insures that no metadata is lost and the tool works properly
+  3. copy the excisting metadata manually inside the tool
+  * this insures that no metadata is lost and that the tool works properly
 * it needs a python 3 installation to work
 
 * for Linux use the following command to start it:
