@@ -29,7 +29,7 @@ test-dir/					test-dir/
 │   │   └── test.txt				│   └── test-txt-metadata.txt
 │   ├── test2 (copy).txt			├── t1
 │   └── test2.txt				│   ├── metadata
-├── t2				⟶		│   │   ├── test2 (copy)-txt-metadata.txt
+├── t2				  ⟶		│   │   ├── test2 (copy)-txt-metadata.txt
 │   ├── t.csv					│   │   └── test2-txt-metadata.txt
 │   ├── test2.txt				│   ├── t2
 │   └── test.txt				│   │   ├── metadata
