@@ -100,3 +100,6 @@ metadata keyword::
 * the reset button empties the metadata of the currently opened file
 
 # Warnings
+* I tried my best to test this tool and eliminate bugs but my advice would be the following:
+  * backup your metadata regularly in case something is lost or overwritten
+  * this should eliminate the possibility to lose your metadata
