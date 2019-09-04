@@ -1,5 +1,6 @@
 # General Information
 * this tools purpose is to manage metadata of all data files in a given working directory
+* the test_dir folder is a directory to test out the tool and see if it fits your needs
 * if metadata already exists and you want to start using this tool i would suggest
   1. backup the existing metadata
   2. delete the metadata folders 
@@ -82,10 +83,20 @@ metadata keyword::
 
 * You are now inside the main window of the tool
 * on the left side you can see a file browser
-  * if you click on a file the metadata editor opens
+* if you click on a file the metadata editor opens
 * the editor consists of a list of keywords and entry boxes to fill in metadata information
+  * if you press ctrl+l in one of these entries it will copy the information from the last file you opened
 * the first keyword will always be some sort of process description
-  * in this drop down list you can select the process which lead you to this file
-* right click on a keyword will let you change the name of this keyword
+  * in this drop down list you can select the process which lead you to this data file
+* right click on a keyword will let you change the name
+
+* on the right side you can see function buttons:
+  * [<] this will fill in all the metadata information from the last file you opened
+  * [>] this will write the current input metadata for all files in the directory of the current file
+  * [>>] this will write the current input metadata for all files in the directory of the current file and all its subdirectories
+  * [>>>] this will write the current input metadata for all files in your opened working directory
+  * **WARNING:** these buttons can lead to already put in metadata being overwritten
+* the next two buttons are there to let you add/remove keywords and to let you edit your list of processes
+* the reset button empties the metadata of the currently opened file
 
 # Warnings
