@@ -78,8 +78,14 @@ metadata keyword::
 * The tool will warn you if unknown keywords or processes are found inside this directory
   * this can happen if other people with their own instances of the tool edited metadata for this directory and added processes or keywords
 * you can import these unknown keywords or processes into your keywords.pkl or processes.pkl
-  * *WARNING:* if you choose to not import these unknown keywords or processes they will be deleted from the metadata which could lead to the loss of wanted metadata
+  * **WARNING:** if you choose to not import these unknown keywords or processes they will be deleted from the metadata which could lead to the loss of wanted metadata
 
-
+* You are now inside the main window of the tool
+* on the left side you can see a file browser
+  * if you click on a file the metadata editor opens
+* the editor consists of a list of keywords and entry boxes to fill in metadata information
+* the first keyword will always be some sort of process description
+  * in this drop down list you can select the process which lead you to this file
+* right click on a keyword will let you change the name of this keyword
 
 # Warnings
