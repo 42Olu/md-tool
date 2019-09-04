@@ -3,18 +3,16 @@
 * this includes managing a list of keywords and process descriptions
 * it needs a python 3 installation to work
 
-For Linux use the following command to start it:
+* for Linux use the following command to start it:
 ```
 ./md_tool.run
 ```
 
-For Windows use:
+* for Windows use the following command or double click md_tool.bat
 ```
 md_tool.bat
 ```
-or double click md_tool.bat
-
-It can also be run on all operating systems with:
+* it can also be run on all operating systems with:
 ```
 python3 main.py
 ```
@@ -54,6 +52,15 @@ test-dir/					test-dir/
 						├── test (copy).txt
 						└── test.txt
 ```
+
+* the metadata files follow a specific scheme:
+```
+path to data file: /path/to/the/data/file.ext
+
+metadata keyword::  
+...
+```
+* the separator between the keyword and the metadata is ```"::  "``` = ColonColonSpaceSpace
 
 # Instructions
 
