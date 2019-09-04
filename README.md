@@ -79,7 +79,8 @@ metadata keyword::
   * this can happen if other people with their own instances of the tool edited metadata for this directory and added processes or keywords
 * you can import these unknown keywords or processes into your keywords.pkl or processes.pkl
   ```diff
-- WARNING:``` if you choose to not import these unknown keywords or processes they will be deleted from the metadata which could lead to the loss of wanted metadata
+- WARNING:
+``` if you choose to not import these unknown keywords or processes they will be deleted from the metadata which could lead to the loss of wanted metadata
 
 
 
