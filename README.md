@@ -70,7 +70,7 @@ metadata keyword::
   * this can be used to manually add metadata with a text editor
 
 # Instructions
-* after starting the tool it will warn you if no keywords.pkl or processes.pkl is found
+* after starting the tool it will warn you if no keywords.pkl or processes.pkl are found
   * the recovery will be started to create the missing files from existing metadata or create empty files
 
 * If no warnung occured you will be able to select the working directory which includes your datafiles you want to add or edit the metadata of
@@ -92,9 +92,9 @@ metadata keyword::
 
 * on the right side you can see function buttons:
   * [<] this will fill in all the metadata information from the last file you opened
-  * [>] this will write the current input metadata for all files in the directory of the current file
-  * [>>] this will write the current input metadata for all files in the directory of the current file and all its subdirectories
-  * [>>>] this will write the current input metadata for all files in your opened working directory
+  * [>] this will write the currently input metadata for all files in the directory of the current file
+  * [>>] this will write the currently input metadata for all files in the directory of the current file and all its subdirectories
+  * [>>>] this will write the currently input metadata for all files in your opened working directory
   * **WARNING:** these buttons can lead to already put in metadata being overwritten
 * the next two buttons are there to let you add/remove keywords and to let you edit your list of processes
 * the reset button empties the metadata of the currently opened file
