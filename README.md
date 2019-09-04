@@ -65,7 +65,7 @@ test-dir/					test-dir/
 ```
 path to data file: /path/to/the/data/file.ext
 
-metadata keyword::  
+metadata keyword::  metadata information
 ...
 ```
 * the separator between the keyword and the metadata is <pre>"::  "</pre> written out ColonColonSpaceSpace
