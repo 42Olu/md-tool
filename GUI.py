@@ -70,6 +70,9 @@ class GUI:
         # but no tree item is selected
         self.file_name = None
 
+        # the last opened metadata file to copy from it
+        self.last_opened_file = None
+
 
     def create_treeview(self, path, parent):   
         """
@@ -192,7 +195,6 @@ class GUI:
         self.master.bind('<Button-4>', self.on_mousewheel)
         self.master.bind('<Button-5>', self.on_mousewheel)
 
-
     def unbind_mousewheel(self, event):
         """
         Function to unbind the mouse wheel if the mouse leaves the entry frame
@@ -207,9 +209,9 @@ class GUI:
         """
         Function which binds mouse wheel to scrolling the canvas
         """
-        if event.num == 5 or event.delta == -120:
+        if event.num == 5 or event.delta == -120 or event.delta == -1:
             v = 1
-        if event.num == 4 or event.delta == 120:
+        if event.num == 4 or event.delta == 120 or event.delta == 1:
             v = -1
         self.canvas.yview_scroll(v, "units")
 
@@ -235,6 +237,9 @@ class GUI:
         else:
             self.last_selection = path
 
+        # abort if the file is already opened
+        if not self.topframe is None and os.path.abspath(self.file_name.get()) == path:
+            return
         # control output
         print("changed to file: ", path)
         # this bool determines if the metadata should be saved if the file is changed
@@ -260,10 +265,15 @@ class GUI:
         # set the filename label to the newly opened file
         self.file_name.set(os.path.relpath(path, os.getcwd()))
 
+        if save_md:
+            self.last_opened_file = []
         # iterate over the keywords and load the metadata from the corresponding file
         # save the metadata of the closed file to the disc
         # (everytime except the first time we click on a data file because then the entry variables are empty)
         for i,keyword in enumerate(self.keywords):
+            if save_md:
+                # save the last opened information
+                self.last_opened_file.append(self.stringvar_list[i].get())
             # process description
             if i == 0:
                 # make sure the process description is valid and use No Description if not
@@ -283,14 +293,16 @@ class GUI:
                     self.MD_files[old_path][keyword] = self.stringvar_list[i].get()
                 self.stringvar_list[i].set(self.MD_files[path][keyword])
 
-    def save_current_metadata(self):
+    def save_current_metadata(self, path=None):
         """
         Function which saves the metadata for the currently opened file
         """
         # if a file was opened
         if not self.topframe is None:
-            # create the path
-            path = os.path.abspath(self.file_name.get())
+            # if no path is given
+            if path is None:
+                # create the path
+                path = os.path.abspath(self.file_name.get())
 
             # save each entry
             for i,keyword in enumerate(self.keywords):
@@ -408,7 +420,7 @@ class GUI:
         save_button.grid(column = 0, row = 10, sticky="ew", pady=10, padx=10)
 
         # clicking the x should mirror the effect of clicking the save button
-        add_remove.protocol("WM_DELETE_WINDOW", lambda : self.update_keywords(keyword_text.get("1.0","end"), add_remove))
+        add_remove.protocol("WM_DELETE_WINDOW", add_remove.destroy)
 
 
     def update_processes(self, descr, old_name, name, edit_window, edit_processes_window):
@@ -567,9 +579,9 @@ class GUI:
             """
             Function which binds mouse wheel to scrolling the canvas
             """
-            if event.num == 5 or event.delta == -120:
+            if event.num == 5 or event.delta == -120 or event.delta == -1:
                 v = 1
-            if event.num == 4 or event.delta == 120:
+            if event.num == 4 or event.delta == 120 or event.delta == 1:
                 v = -1
             edit_canvas.yview_scroll(v, "units")
 
@@ -726,6 +738,91 @@ class GUI:
         # clicking the x should mirror the effect of hitting the return key
         edit.protocol("WM_DELETE_WINDOW", lambda : self.update_keyword(None, i, edit))              
 
+    def reset_current_metadata(self):
+        """
+        Function to reset the currently opened file
+        """
+        # check if you really want to do this
+        if messagebox.askyesno("Reset current file", "Do you really want to reset the currently opened metadata file?"):
+            # loop over the stringvars and reset them
+            for i,stringvar in enumerate(self.stringvar_list):
+                if i == 0:
+                    stringvar.set(self.processes[[""]])
+                else:
+                    stringvar.set("")
+            # save the empty metadata
+            self.save_current_metadata()
+
+    def copy_last_opened(self, index=None):
+        """
+        copy metadata from last opened file
+
+            index   - index     ... if given copys only keyword with index
+        """
+        # check if a last opened file exists
+        if self.last_opened_file is None:
+            return
+        
+        # check if an index is given
+        if index is None:
+            if messagebox.askyesno("Copy from last opened File", "Do you really want to copy all metadata from the last opened file?\n\nWarning:\nThis overwrites all currently input metadata!"):
+                for i in range(len(self.last_opened_file)):
+                    self.stringvar_list[i].set(self.last_opened_file[i])
+        else:
+            self.stringvar_list[index].set(self.last_opened_file[index])
+
+        # save the copied metadata
+        self.save_current_metadata()
+
+    def copy_to_directory(self, subdirectories=False, workingdir=False):
+        """
+        Function to copy the current metadata to the whole directory
+
+            subdirectories      - bool      ... should subdirectories be also overwritten
+            workingdir          - bool      ... should all files in the working dir be overwritten
+        """
+        if workingdir:
+            # ask if they really want to do this
+            if messagebox.askyesno("Copy metadata to all other files", "Do you really want to copy the currently input metadata to all files?\n\nWarning:\nThis will overwrite metadata of the other files!"):
+                for md_path in self.MD_files:
+                    self.save_current_metadata(path=md_path)
+
+        elif subdirectories:
+            # ask if they really want to do this
+            if messagebox.askyesno("Copy metadata to the directory and subdirectories", "Do you really want to copy the currently input metadata to all files in this directory and all its subdirectories?\n\nWarning:\nThis will overwrite metadata of the other files!"):
+                # get all datafiles in this directory and its subdirectory
+                # initialize data file list
+                files_in_dir_and_subs = []
+
+                # create directory walk
+                w = os.walk(os.path.dirname(os.path.abspath(self.file_name.get())))
+                # filling the list with all file paths
+                for root, _, files in w:
+                    # iterate over all files
+                    for f in files:
+                        # create the path
+                        path = os.path.join(root, f)
+
+                        # check if metadata is in the filename or directory above
+                        if not "metadata" in f and not "metadata" in os.path.split(root)[1]:
+                            files_in_dir_and_subs.append(path)
+
+                # loop over the files and set the metadata
+                for file_path in files_in_dir_and_subs:
+                    self.save_current_metadata(path=file_path)
+
+        else:
+            # ask if they really want to do this
+            if messagebox.askyesno("Copy metadata to directory", "Do you really want to copy the currently input metadata to the whole directory?\n\nWarning:\nThis will overwrite metadata of the other files in this directory!"):
+                # create a list with all paths to files in the directory
+                files_in_dir = [os.path.join(os.path.dirname(os.path.abspath(self.file_name.get())), f) \
+                                for f in os.listdir(os.path.dirname(os.path.abspath(self.file_name.get()))) \
+                                if os.path.isfile(os.path.join(os.path.dirname(os.path.abspath(self.file_name.get())), f))]
+
+                # loop over the files and set the metadata
+                for file_path in files_in_dir:
+                    self.save_current_metadata(path=file_path)
+
     def create_entry_list(self):
         """
         Function to create a scrollable resizable list of tkinter widgets
@@ -839,6 +936,12 @@ class GUI:
 
                 self.entry_list[-1].bind('<FocusOut>', create_focus_loss_lambda(i))
 
+                # bind ctrl + L to copy information from the last opened file
+                def create_last_opened_lambda(j):
+                    return lambda event: self.copy_last_opened(index=j)
+
+                self.entry_list[-1].bind('<Control-l>', create_last_opened_lambda(i))
+
         # bind ctrl + s to the master window to save the metadata and loose focus of the current entry
         # this is only done now to make sure the entries already excist
         self.master.bind('<Control-s>', self.on_ctrl_s)
@@ -848,13 +951,39 @@ class GUI:
         self.button_frame = tk.Frame(self.topframe)
         self.button_frame.grid(column=2, row=1, padx=10, pady=10)
 
+        self.edit_processes_button = tk.Button(self.button_frame, font = "Courier 11", text="<",
+                                             bg = "gray70", command=self.copy_last_opened)
+        self.edit_processes_button.grid(column=0, row=0, pady=5, sticky="new")
+
+
+        self.edit_processes_button = tk.Button(self.button_frame, font = "Courier 11", text=">",
+                                             bg = "gray70", command=self.copy_to_directory)
+        self.edit_processes_button.grid(column=0, row=1, pady=5, sticky="new")
+
+
+        self.edit_processes_button = tk.Button(self.button_frame, font = "Courier 11", text=">>",
+                                             bg = "gray70", command=lambda : self.copy_to_directory(subdirectories=True))
+        self.edit_processes_button.grid(column=0, row=2, pady=5, sticky="new")
+
+
+        self.edit_processes_button = tk.Button(self.button_frame, font = "Courier 11", text=">>>",
+                                             bg = "gray70", command=lambda : self.copy_to_directory(workingdir=True))
+        self.edit_processes_button.grid(column=0, row=3, pady=(5,20), sticky="new")
+
+
         self.add_remove_keywords = tk.Button(self.button_frame, font = "Courier 11", text="add/remove\nKeywords",
-                                             bg = "gray", command=self.create_add_remove_window)
-        self.add_remove_keywords.grid(column=0, row=0, pady=5, sticky="ew")
+                                             bg = "gray60", command=self.create_add_remove_window)
+        self.add_remove_keywords.grid(column=0, row=4, pady=5, sticky="new")
+
 
         self.edit_processes_button = tk.Button(self.button_frame, font = "Courier 11", text="edit\nprocesses",
-                                             bg = "gray", command=self.create_edit_process_window)
-        self.edit_processes_button.grid(column=0, row=1, pady=5, sticky="ew")
+                                             bg = "gray60", command=self.create_edit_process_window)
+        self.edit_processes_button.grid(column=0, row=5, pady=5, sticky="new")
+
+
+        self.edit_processes_button = tk.Button(self.button_frame, font = "Courier 11", text="reset",
+                                             bg = "gray40", command=self.reset_current_metadata)
+        self.edit_processes_button.grid(column=0, row=6, pady=20, sticky="new")
 
     def on_closing(self):
         """

@@ -171,8 +171,21 @@ def recover_from_other_users(path, keywords, processes):
     pds = []
     # iterate over the found md_files and save the found keys/pds
     for md_file in metadata_file_list:
-        k = extract_keywords(md_file, skip_pd=True)
-        keys.extend(list(set(keys) - set(k)))
+        k = extract_keywords(md_file, skip_pd=False)
+        # check process description is differently named:
+        if k[0] != keywords[0]:
+            # calculate path to the data file
+            path = os.path.join(os.path.split(os.path.split(md_file)[0])[0], 
+                                "-".join(os.path.split(md_file)[1].replace("-metadata.txt", "").split("-")[:-1])+"."+os.path.split(md_file)[1].replace("-metadata.txt", "").split("-")[-1])
+            # create md file and overwrite the name
+            tmp = MD_file(path, k)
+            tmp.read()
+            tmp.update_keyword(0, keywords[0])
+            tmp.write()
+
+        k = k[1:]
+        dif = list(set(k)-set(keys))
+        keys.extend(dif)
 
         p = extract_process_description(md_file)
         if not p in pds:
@@ -198,7 +211,7 @@ def recover_from_other_users(path, keywords, processes):
 
     if len(not_saved_pds) > 0:
         if messagebox.askyesno("Found unknown Process Descriptions!", "The following unkown process descriptions were found in the working directory:\n" + str(not_saved_pds)
-            + "\nDo you want to update your processes.pkl?\n\nWarning: not updating will delete these process descriptions. Saving them will save them with placeholder names."):
+            + "\nDo you want to update your processes.pkl?\n\nWarning: not updating will delete these process descriptions (metadata could be lost). Saving them will save them with placeholder names."):
             for i,pd in enumerate(not_saved_pds):
                 name = "descr_"+str(i)
                 p_names = processes.get_process_names()
@@ -206,6 +219,7 @@ def recover_from_other_users(path, keywords, processes):
                 while name in p_names:
                     name = name.split("(")[0]
                     name = name+"("+str(j)+")"
+                    j+=1
 
                 processes[[pd]] = name
 

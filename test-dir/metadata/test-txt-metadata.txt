@@ -1,7 +1,7 @@
 path to data file: /home/niklas/projects/md-tool/test-dir/test.txt
 
 process descr::  
-title::  test
+title::  
 type of data::  
 author::  
 contributors::  
