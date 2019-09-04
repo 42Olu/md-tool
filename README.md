@@ -1,5 +1,10 @@
 # General Information
 * this tools purpose is to manage metadata of all data files in a given working directory
+* if metadata already exists and you want to start using this tool i would suggest
+  1. backup the existing metadata
+  2. delete the metadata folders 
+  3. copy the excisting metadata manually into the tool
+  * this insures that no metadata is lost
 * this includes managing a list of keywords and process descriptions
 * it needs a python 3 installation to work
 
