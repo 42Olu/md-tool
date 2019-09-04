@@ -17,7 +17,7 @@ md_tool.bat
 python3 main.py
 ```
 
-* if you select an working directory without stored metadata it will initialize metadata files in seperate folders
+* if you select a working directory without stored metadata it will initialize metadata files in seperate folders
 ```
 test-dir/					test-dir/
 ├── t1						├── metadata
