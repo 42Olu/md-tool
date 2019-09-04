@@ -105,7 +105,7 @@ def recover_processes():
 
                 # check if metadata is in the filename or directory above
                 if  "metadata" in f or "metadata" in os.path.split(root)[1]:
-                    metadata_file_list.append(path)
+                    metadata_file_list.append(os.path.normpath(path))
 
         descriptions = []
 
@@ -165,7 +165,7 @@ def recover_from_other_users(path, keywords, processes):
 
             # check if metadata is in the filename or directory above
             if  "metadata" in f or "metadata" in os.path.split(root)[1]:
-                metadata_file_list.append(path)
+                metadata_file_list.append(os.path.normpath(path))
 
     keys = []
     pds = []

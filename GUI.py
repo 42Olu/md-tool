@@ -805,7 +805,7 @@ class GUI:
 
                         # check if metadata is in the filename or directory above
                         if not "metadata" in f and not "metadata" in os.path.split(root)[1]:
-                            files_in_dir_and_subs.append(path)
+                            files_in_dir_and_subs.append(os.path.normpath(path))
 
                 # loop over the files and set the metadata
                 for file_path in files_in_dir_and_subs:
