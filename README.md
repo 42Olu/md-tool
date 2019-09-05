@@ -107,3 +107,10 @@ metadata keyword::  metadata information
 * I tested the tool most extensively on ubuntu (the development platform)
 * I also tested the tool on Windows
 * in theory it should also run on mac os
+
+# Known Issues
+* on windows when scrolling over a scrollable canvas, for example the entry list, it sometimes throws an error but works flawless
+* If you rename a data file you need to manually rename the metadata file accordingly if you want the metadata to load correctly
+* imported process descriptions will be given place holder names with which they are displayed in your tool
+  * you can rename them manually inside the process editing window
+  * the metadata is the description and not the name -> not a problem
