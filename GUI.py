@@ -209,9 +209,9 @@ class GUI:
         """
         Function which binds mouse wheel to scrolling the canvas
         """
-        if event.num == 5 or event.delta == -120 or event.delta == -1:
+        if event.num == 5 or event.delta < 0:
             v = 1
-        if event.num == 4 or event.delta == 120 or event.delta == 1:
+        if event.num == 4 or event.delta > 0:
             v = -1
         self.canvas.yview_scroll(v, "units")
 
@@ -579,9 +579,9 @@ class GUI:
             """
             Function which binds mouse wheel to scrolling the canvas
             """
-            if event.num == 5 or event.delta == -120 or event.delta == -1:
+            if event.num == 5 or event.delta < 0:
                 v = 1
-            if event.num == 4 or event.delta == 120 or event.delta == 1:
+            if event.num == 4 or event.delta > 0:
                 v = -1
             edit_canvas.yview_scroll(v, "units")
 
