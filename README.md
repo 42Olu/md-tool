@@ -109,10 +109,7 @@ metadata keyword::  metadata information
 * in theory it should also run on mac os
 
 # Known Issues
-* on windows when scrolling over a scrollable canvas, for example the entry list, it sometimes throws an error but works flawless
-  * this may be happening because the delta of the event is not exactly 120 or -120
-  * because the main development platform was linux I am going to ignore this issue at the moment
 * If you rename a data file you need to manually rename the metadata file accordingly if you want the metadata to load correctly
 * imported process descriptions will be given place holder names with which they are displayed in your tool
   * you can rename them manually inside the process editing window
-  * the metadata is the description and not the name -> not a problem
+  * the metadata is the process description and not the name -> not a problem
